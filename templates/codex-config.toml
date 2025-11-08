@@ -1,10 +1,11 @@
 # ~/.codex/config.toml — created by codex-1up
 # Adjust to your liking. See Codex CLI docs for full options.
 
-# Core
+# Core (root defaults)
 model = "gpt-5"
 approval_policy = "on-request"       # untrusted|on-failure|on-request|never
 sandbox_mode   = "workspace-write"   # read-only|workspace-write|danger-full-access
+profile = "balanced"                 # active profile: balanced|safe|minimal|yolo
 
 # Extra settings that only apply when `sandbox = "workspace-write"`.
 [sandbox_workspace_write]
@@ -12,8 +13,8 @@ sandbox_mode   = "workspace-write"   # read-only|workspace-write|danger-full-acc
 # requests. Disabled by default.
 network_access = true
 
-[tools] 
-web_search = true
+[features]
+web_search_request = true
 
 # Optional privacy & UX
 # disable_response_storage = true     # zero-data-retention mode
@@ -43,3 +44,29 @@ web_search = true
 # env_key = "AZURE_OPENAI_API_KEY"
 # query_params = { api-version = "2025-04-01-preview" }
 # wire_api = "responses"
+
+# ---- Profiles (override only what differs from root) -----------------------
+
+[profiles.balanced]
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+[profiles.balanced.features]
+web_search_request = true
+
+[profiles.safe]
+approval_policy = "on-failure"
+sandbox_mode = "workspace-write"
+[profiles.safe.features]
+web_search_request = false
+
+[profiles.minimal]
+model_reasoning_effort = "minimal"
+model_reasoning_summary = "concise"
+[profiles.minimal.features]
+web_search_request = false
+
+[profiles.yolo]
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+[profiles.yolo.features]
+web_search_request = true

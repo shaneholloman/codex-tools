@@ -5,14 +5,15 @@ VERSION="1.0.1"
 PROJECT="codex-1up"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-
-# If ROOT_DIR is not the expected project directory, try to find it
-if [ ! -d "${ROOT_DIR}/templates" ]; then
-  # This might be running from within the project directory
-  if [ -d "./templates" ]; then
-    ROOT_DIR="$(pwd)"
-  fi
+# Try common locations to resolve repo root containing templates/
+if [ -d "${SCRIPT_DIR}/templates" ]; then
+  ROOT_DIR="${SCRIPT_DIR}"
+elif [ -d "${SCRIPT_DIR}/../templates" ]; then
+  ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+elif [ -d "./templates" ]; then
+  ROOT_DIR="$(pwd)"
+else
+  ROOT_DIR="${SCRIPT_DIR}"
 fi
 
 DRY_RUN=false
@@ -369,82 +370,73 @@ EOF
   fi
 }
 
+
+_select_active_profile() {
+  local cfg_path="$1"
+  if $ASSUME_YES || $SKIP_CONFIRMATION; then
+    info "Using default active profile: balanced"
+    return 0
+  fi
+  echo ""
+  info "Select active Codex profile (default: balanced):"
+  echo "  1) balanced  - on-request approvals, workspace-write, web search on"
+  echo "  2) safe      - on-failure approvals, workspace-write, web search off"
+  echo "  3) minimal   - minimal reasoning, concise summaries, web search off"
+  echo "  4) yolo      - never approve, danger-full-access (high risk)"
+  printf "Choose [1-4] (default: 1): "
+  local choice="1"
+  read -r choice || choice="1"
+  local name="balanced"
+  case "$choice" in
+    1|"balanced"|"BALANCED"|"") name="balanced" ;;
+    2|"safe"|"SAFE") name="safe" ;;
+    3|"minimal"|"MINIMAL") name="minimal" ;;
+    4|"yolo"|"YOLO") name="yolo" ;;
+    *) warn "Invalid choice; using balanced"; name="balanced" ;;
+  esac
+  info "Setting active profile to: ${name}"
+  if $DRY_RUN; then
+    echo "[dry-run] set profile = \"${name}\" in ${cfg_path}"
+  else
+    if grep -qE '^profile[[:space:]]*=' "$cfg_path"; then
+      run sed -i.bak -E "s/^profile[[:space:]]*=[[:space:]]*\".*\"/profile = \"${name}\"/" "$cfg_path"
+    else
+      run sed -i.bak -e "1s;^;profile = \"${name}\"\n;" "$cfg_path"
+    fi
+  fi
+}
+
 write_codex_config() {
   local cfg="${HOME}/.codex/config.toml"
-  local template_dir="${ROOT_DIR}/templates/configs"
+  local template_file="${ROOT_DIR}/templates/codex-config.toml"
 
-  # Prompt user to choose config profile
-  info "Choose your codex-1up configuration profile:"
-  echo ""
-  echo "  1) SAFE     - Most restrictive, asks for approval when commands fail"
-  echo "                (Recommended for high-security environments)"
-  echo ""
-  echo "  2) DEFAULT  - Balanced approach, asks for approval when needed"
-  echo "                (Recommended for most users - good security/usability balance)"
-  echo ""
-  echo "  3) YOLO     - Full access, never asks for approval"
-  echo "                ⚠️  WARNING: Allows codex full disk + network access!"
-  echo "                ⚠️  WARNING: Inherits ALL environment variables (including secrets)!"
-  echo "                ⚠️  Only use in trusted, sandboxed environments!"
-  echo ""
-  echo "  4) NO CHANGES - Do not create or modify ~/.codex/config.toml"
-  echo "                (You can manage it yourself later)"
+  mkdir -p "${HOME}/.codex"
 
-  local selected_profile="default"
-  if ! $SKIP_CONFIRMATION; then
-    echo -n "Choose profile [1-4] (default: 2/DEFAULT): "
-    read -r choice || choice="2"
-
-    case "$choice" in
-      1|"safe"|"SAFE") selected_profile="safe" ;;
-      2|"default"|"DEFAULT"|""|"2") selected_profile="default" ;;
-      3|"yolo"|"YOLO")
-        warn "⚠️  You selected YOLO mode!"
-        warn "⚠️  This gives codex FULL access to your system and ALL environment variables!"
-        if ! confirm "Are you sure you want to proceed with YOLO mode?"; then
-          info "Falling back to DEFAULT profile"
-          selected_profile="default"
-        else
-          selected_profile="yolo"
-        fi
-        ;;
-      4|"none"|"no"|"skip")
-        info "User chose to make no changes to ~/.codex/config.toml"
-        return 0
-        ;;
-      *) 
-        warn "Invalid choice, using DEFAULT profile"
-        selected_profile="default"
-        ;;
-    esac
-  fi
-
-  # Use selected template
-  local template_file="${template_dir}/codex-${selected_profile}.toml"
   if [ ! -f "$template_file" ]; then
-    err "Template file not found: ${template_file}"
+    err "Unified config template missing at ${template_file}"
     return 1
   fi
 
-  # If an existing config is present, confirm overwrite now (with profile context)
-  if [ -f "$cfg" ]; then
-    warn "~/.codex/config.toml already exists"
-    if confirm "Overwrite with the '${selected_profile}' template? (existing will be backed up)"; then
-      local backup="${cfg}.backup.$(date +%Y%m%d_%H%M%S)"
-      run cp "$cfg" "$backup"
-      info "Backed up existing config to: ${backup}"
-    else
-      info "Keeping existing config unchanged"
-      return 0
-    fi
+  if [ ! -f "$cfg" ]; then
+    info "Creating unified Codex config with multiple profiles at ${cfg}"
+    if $DRY_RUN; then echo "[dry-run] cp $template_file $cfg"; else run cp "$template_file" "$cfg"; fi
+    ok "Created ~/.codex/config.toml"
+    _select_active_profile "$cfg"
+    info "Tip: use 'codex --profile <name>' to switch at runtime or 'codex-1up config set-profile <name>' to persist."
+    return 0
   fi
 
-  info "Creating config using ${selected_profile} profile"
-  mkdir -p "${HOME}/.codex"
-  run cp "$template_file" "$cfg"
-
-  ok "Created ~/.codex/config.toml with ${selected_profile} profile"
-  info "See config options: https://github.com/openai/codex/blob/main/docs/config.md"
+  warn "~/.codex/config.toml already exists"
+  if confirm "Backup and overwrite with the latest unified template?"; then
+    local backup="${cfg}.backup.$(date +%Y%m%d_%H%M%S)"
+    run cp "$cfg" "$backup"
+    info "Backed up to ${backup}"
+    if $DRY_RUN; then echo "[dry-run] cp $template_file $cfg"; else run cp "$template_file" "$cfg"; fi
+    ok "Overwrote ~/.codex/config.toml with unified template"
+    _select_active_profile "$cfg"
+  else
+    info "Keeping existing config; you can manage profiles via the new CLI later."
+  fi
 }
 
 # Prompt to create a global AGENTS.md in ~/.codex
@@ -592,3 +584,5 @@ main() {
 }
 
 main "$@"
+
+

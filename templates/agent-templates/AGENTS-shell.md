@@ -3,7 +3,8 @@
 When you need to call tools from the shell, use this rubric:
 
 - Find files by file name: `fd`
-- Find files with path name: `fd -p <file-path>`
+- Print absolute paths: `fd -p '<pattern>'`
+- Match against full path: `fd --full-path '<pattern>'`
 - List files in a directory: `fd . <directory>`
 - Find files with extension and pattern: `fd -e <extension> <pattern>`
 - Find text: `rg` (ripgrep)
@@ -20,7 +21,10 @@ When you need to call tools from the shell, use this rubric:
     - Rust → `ast-grep --lang rust -p '<pattern>'`
     - JSON → `ast-grep --lang json -p '<pattern>'`
   - For other languages, set `--lang` appropriately.
-- Select among matches: pipe to `fzf`
+- Select deterministically (non-interactive):
+  - `fd --full-path '<pattern>' | head -n 1`
+  - `ast-grep -l --lang <lang> -p '<pattern>' | head -n 10`
+  - Or: `fzf --filter 'term' | head -n 1`
 - JSON: `jq`
 - YAML/XML: `yq`
 
@@ -35,7 +39,7 @@ Default to Bash. For `.sh` files or scripts with a `bash` shebang, assume Bash; 
 - Lint (static analysis): `shellcheck`
   - Single file (follow sourced files): `shellcheck -x path/to/script.sh`
   - Many by extension: `fd -e sh -e bash -t f | xargs -r shellcheck -x`
-  - Many by shebang: `rg -l '^\s*#!.*\b(bash|sh)\b' | fzf -m | xargs -r shellcheck -x`
+  - Many by shebang: `rg -l '^\s*#!.*\b(bash|sh)\b' | head -n 50 | xargs -r shellcheck -x`
   - Severity: `-S warning` or `-S style`
   - Exclude rules sparingly: `-e SC1091,SC2086` (prefer file-local disables: `# shellcheck disable=SC2086`)
 
@@ -46,7 +50,7 @@ Default to Bash. For `.sh` files or scripts with a `bash` shebang, assume Bash; 
 
 - Test: `bats` (Bats-core)
   - Run all tests: `bats -r test/`
-  - Pick a test via fzf: `fd -e bats test | fzf | xargs -r bats`
+  - Pick tests deterministically: `fd -e bats test | head -n 1 | xargs -r bats`
   - Minimal test template:
     ```bash
     # test/my_script.bats
@@ -61,3 +65,6 @@ Default to Bash. For `.sh` files or scripts with a `bash` shebang, assume Bash; 
 - Lint: `fd -e sh -e bash -t f | xargs -r shellcheck -S warning -x`
 - Format check: `shfmt -d -i 2 -ci -sr .`
 - Tests: `bats -r test/`
+
+Avoid interactive tools
+- Avoid interactive TUI tools (fzf without `--filter`, less, vim) unless the user explicitly asks for them. Prefer deterministic, non-interactive commands (`head`, `--filter`, `--json` + `jq`) so runs are reproducible.

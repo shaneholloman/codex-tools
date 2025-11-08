@@ -9,7 +9,7 @@
 - ✅ Adds **AST‑aware refactor tools**: `ast-grep`
 - ✅ Adds fast shell power tools: `fd`, `ripgrep`, `rg`, `fzf`, `jq`, `yq`
 - ✅ 4x **AGENTS.md** Templates: `generic` / `typescript` / `python` / `shell`
-- ✅ 3x **CODEX CLI** Templates: `safe` / `default` / `YOLO`
+- ✅ Unified **Codex config** with multiple profiles: `balanced` / `safe` / `minimal` / `yolo`
 - ✅ **semantic diffs** with `difftastic`
 - ✅ Adds **shell aliases** (`cx`, `cxdiff`)
 
@@ -26,10 +26,14 @@
 ## Quick start
 
 ```bash
-git clone https://github.com/regenrek/codex-1up
-cd codex-1up
+# Install via npm (global)
+npm install -g codex-1up
+codex-1up install --yes
+
+# Or run from source
+git clone https://github.com/regenrek/codex-1up && cd codex-1up
 ./install.sh --yes
-# Or use the wrapper:
+# Or the wrapper:
 ./bin/codex-1up install --yes
 ```
 
@@ -58,7 +62,7 @@ cd codex-1up
 | **jq** / **yq**           | Reliable JSON/YAML processing on the command line.                                      |
 | **difftastic**            | Semantic code diffs for reviewing AI edits; falls back to `git-delta` when unavailable. |
 | **shell aliases**         | `cx` (one‑shot Codex), `cxdiff` (semantic diffs).                                       |
-| **\~/.codex/config.toml** | Created from templates with profiles: SAFE / DEFAULT / YOLO / NO CHANGES option. See [Codex config reference](https://github.com/openai/codex/blob/main/docs/config.md). |
+| **\~/.codex/config.toml** | Single template with multiple profiles. Active profile is chosen during install (default: `balanced`). See [Codex config reference](https://github.com/openai/codex/blob/main/docs/config.md). |
 | **AGENTS.md**             | Minimal per‑repo rubric; installer can also create global `~/.codex/AGENTS.md`.         |
 
 
@@ -72,18 +76,24 @@ cd codex-1up
 | shell      | Shell/Bash‑focused rubric with shellcheck/shfmt/bats tips     |
 
 
-### Config profiles
+### Profiles
 
-During install, you can choose one of the profiles for `~/.codex/config.toml`:
+The installer writes one unified `~/.codex/config.toml` and asks which profile to activate (default: `balanced`). You can switch later.
 
-- SAFE: Most restrictive; prompts on failures; sandboxed with limited env
-- DEFAULT (recommended): Balanced prompts and sandbox; network enabled in workspace
-- YOLO: Full access, never asks — includes explicit warnings and double‑confirm
-- NO CHANGES: Do not create or modify `~/.codex/config.toml`
+- balanced (default): approvals on-request; sandbox workspace-write; modern defaults.
+- safe: approvals on-failure; sandbox workspace-write; conservative.
+- minimal: reduced reasoning verbosity; focused.
+- yolo: no approvals; danger-full-access; for trusted/dev containers only.
 
-For all available options and advanced usage, see the [Codex config reference](https://github.com/openai/codex/blob/main/docs/config.md).
+Switching profiles
+- Temporary for a session: `codex --profile <name>`
+- Persist default: `codex-1up config set-profile <name>`
+- List available profiles: `codex-1up config profiles`
+
+For advanced options, see the [Codex config reference](https://github.com/openai/codex/blob/main/docs/config.md).
 
 ### After installing
+
 
 - Open a new terminal session (or source your shell rc)
 - Run `codex` to sign in and start using the agent

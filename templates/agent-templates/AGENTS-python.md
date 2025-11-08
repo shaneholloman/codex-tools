@@ -4,7 +4,8 @@ When you need to call tools from the shell, use this rubric:
 
 ## File & Text
 - Find files by file name: `fd`
-- Find files with path name: `fd -p <file-path>`
+- Print absolute paths: `fd -p '<pattern>'`
+- Match against full path: `fd --full-path '<pattern>'`
 - List files in a directory: `fd . <directory>`
 - Find files with extension and pattern: `fd -e <extension> <pattern>`
 - Find Text: `rg` (ripgrep)
@@ -18,7 +19,10 @@ When you need to call tools from the shell, use this rubric:
     - Rust → `ast-grep --lang rust -p '<pattern>'`
     - JSON → `ast-grep --lang json -p '<pattern>'`
   - Prefer `ast-grep` over ripgrep/grep unless a plain-text search is explicitly requested.
-- Select among matches: pipe to `fzf`
+- Select deterministically (non-interactive):
+  - `fd --full-path '<pattern>' | head -n 1`
+  - `ast-grep -l --lang python -p '<pattern>' | head -n 10`
+  - Or: `fzf --filter 'term' | head -n 1`
 
 ## Data
 - JSON: `jq`
@@ -44,3 +48,6 @@ When you need to call tools from the shell, use this rubric:
 
 ## Notes
 - Prefer uv for Python dependency and environment management instead of pip/venv/poetry/pip-tools.
+
+Avoid interactive tools
+- Avoid interactive TUI tools (fzf without `--filter`, less, vim) unless the user explicitly asks for them. Prefer deterministic, non-interactive commands (`head`, `--filter`, `--json` + `jq`) so runs are reproducible.
