@@ -59,3 +59,31 @@ All notable changes to this project will be documented in this file.
 ### Docs
 - No README changes needed; templates and flags are already documented.
 
+
+## [0.4] - 2025-11-08
+
+### Breaking/Behavioral Changes
+- Single unified Codex config template: `templates/codex-config.toml` now defines multiple profiles (`balanced`, `safe`, `minimal`, `yolo`). Legacy per-profile files under `templates/configs/` were removed.
+- Web search config migrated to `features.web_search_request`; removed legacy `[tools].web_search` from templates.
+
+### Added
+- New citty-based Node CLI (published as `codex-1up`):
+  - Subcommands: `install`, `agents`, `doctor`, `uninstall`, `config (init|profiles|set-profile)`.
+  - Post-install summary of config path, active profile, available profiles, and detected tools.
+- Installer now asks for the active profile after creating/overwriting `~/.codex/config.toml` (default: `balanced`). Non‑interactive modes keep `balanced` automatically.
+- Vitest test suite for CLI commands, config write/switch, agents writer, and spawn paths.
+- NPM package scaffolding for global install: `npm i -g codex-1up`.
+- Release script adapted for single-package publish: `scripts/release.ts` bumps, builds, copies assets, publishes `cli/`.
+
+### Changed
+- `bin/codex-1up` now boots the Node CLI (loads `cli/dist/main.js`, falls back to tsx in dev).
+- AGENTS templates updated to avoid interactive TUIs by default:
+  - Replaced “pipe to fzf” with deterministic selections (e.g., `head -n 1`, `--filter`).
+  - Clarified `fd` usage: `-p` prints absolute paths, `--full-path` matches on full path.
+- README quick start includes global install instructions.
+
+### Removed
+- Legacy profile selection flow in the installer and unused per-profile config templates.
+
+### Notes
+- This release focuses on “do it right”: clean profiles, no shims, reproducible non‑interactive defaults.

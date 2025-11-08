@@ -1,7 +1,8 @@
 # AGENTS.md — Tool Selection (TypeScript)
 
 - Find files by file name: `fd`
-- Find files with path name: `fd -p <file-path>`
+- Print absolute paths: `fd -p '<pattern>'`
+- Match against full path: `fd --full-path '<pattern>'`
 - List files in a directory: `fd . <directory>`
 - Find files with extension and pattern: `fd -e <extension> <pattern>`
 - Find text: `rg`
@@ -11,19 +12,21 @@
     - `.tsx` → `ast-grep --lang tsx -p '<pattern>'`
   - Common languages:
     - Python → `ast-grep --lang python -p '<pattern>'`
-    - TypeScript → `ast-grep --lang ts -p '<pattern>'`
-    - TSX (React) → `ast-grep --lang tsx -p '<pattern>'`
     - JavaScript → `ast-grep --lang js -p '<pattern>'`
     - Rust → `ast-grep --lang rust -p '<pattern>'`
     - Bash → `ast-grep --lang bash -p '<pattern>'`
     - JSON → `ast-grep --lang json -p '<pattern>'`
-  - Select among matches: pipe to `fzf`
+  - Select deterministically (non-interactive):
+    - `fd --full-path '<pattern>' | head -n 1`
+    - `ast-grep -l --lang ts -p '<pattern>' | head -n 10`
+    - Or: `fzf --filter 'term' | head -n 1`
   - JSON: `jq`
   - YAML/XML: `yq`
 
 If `ast-grep` is available, avoid `rg` or `grep` unless a plain-text search is explicitly requested.
 
 - Prefer `tsx` for fast Node execution:
+  - Run a TS file quickly: `tsx scripts/task.ts --flag`
 
 ### Structured search and refactors with ast-grep
 
@@ -39,5 +42,8 @@ If `ast-grep` is available, avoid `rg` or `grep` unless a plain-text search is e
   `ast-grep --lang ts -p 'await $X' --inside 'Promise.all($_)' --rewrite '$X'`
 * React hook smell: empty deps array in useEffect:
   `ast-grep --lang tsx -p 'useEffect($FN, [])'`
-* List matching files then pick with fzf:
-  `ast-grep --lang ts -p '<pattern>' -l | fzf -m | xargs -r sed -n '1,120p'`
+* List matches deterministically:
+  `ast-grep --lang ts -p '<pattern>' -l | head -n 10 | xargs -r sed -n '1,120p'`
+
+Avoid interactive tools
+- Avoid interactive TUI tools (fzf without `--filter`, less, vim) unless the user explicitly asks for them. Prefer deterministic, non-interactive commands (`head`, `--filter`, `--json` + `jq`) so runs are reproducible.

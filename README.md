@@ -26,10 +26,14 @@
 ## Quick start
 
 ```bash
-git clone https://github.com/regenrek/codex-1up
-cd codex-1up
+# Install via npm (global)
+npm install -g codex-1up
+codex-1up install --yes
+
+# Or run from source
+git clone https://github.com/regenrek/codex-1up && cd codex-1up
 ./install.sh --yes
-# Or use the wrapper:
+# Or the wrapper:
 ./bin/codex-1up install --yes
 ```
 
