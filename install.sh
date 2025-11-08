@@ -58,6 +58,8 @@ ${PROJECT} installer v${VERSION}
 
 Usage: ./install.sh [options]
 
+  (Interactive by default — no flags needed for typical use)
+
   --yes                     non-interactive; accept safe defaults
   --dry-run                 print actions without making changes
   --skip-confirmation       skip user prompts for system changes

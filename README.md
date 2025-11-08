@@ -33,9 +33,6 @@ codex-1up install
 
 ### Common flags
 
-- `--yes`                  : non-interactive; accept safe defaults
-- `--dry-run`              : print what would happen, change nothing
-- `--skip-confirmation`    : skip interactive prompts (useful for CI)
 - `--shell auto|zsh|bash|fish`
 - `--git-external-diff`    : set difftastic as git's external diff (opt-in)
 - `--vscode EXT_ID`        : install a VS Code extension (e.g. `openai.codex`)
@@ -43,6 +40,12 @@ codex-1up install
 - `--agents-template T`    : choose `AGENTS.md` template: `default|typescript|python|shell` (default: `default`)
 - `--no-vscode`            : skip VS Code extension checks
 - `--install-node nvm|brew|skip` : how to install Node.js if missing (default: `nvm`)
+
+### Advanced / CI flags
+
+- `--dry-run`              : print what would happen, change nothing
+- `--skip-confirmation`    : suppress interactive prompts
+- `--yes`                  : non-interactive, accept safe defaults (CI). Most users don’t need this.
 
 ### What gets installed
 
