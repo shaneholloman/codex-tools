@@ -11,6 +11,7 @@
 - ✅ Unified **Codex config** with multiple profiles: `balanced` / `safe` / `minimal` / `yolo`
 - ✅ 🔊 **Notification sounds** with customizable audio alerts for Codex events
 
+![Screenshot of Codex 1UP terminal interface](./public/example.png)
 
 ## Quick start
 
