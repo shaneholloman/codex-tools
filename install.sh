@@ -26,6 +26,7 @@ GIT_EXTERNAL_DIFF=false
 INSTALL_NODE="nvm"
 AGENTS_TARGET=""
 AGENTS_TEMPLATE="default"
+INSTALL_MODE="manual" # recommended|manual
 
 LOG_DIR="${HOME}/.${PROJECT}"
 mkdir -p "${LOG_DIR}"
@@ -266,10 +267,14 @@ configure_git() {
     return 0
   fi
 
-  if ! confirm "Configure git diff tools for better syntax-aware code diffs (recommended for developers)?"; then
+  if [ "${INSTALL_MODE}" != "recommended" ]; then
+    if ! confirm "Configure git diff tools for better syntax-aware code diffs (recommended for developers)?"; then
     info "Skipping git configuration"
     return 0
   fi
+else
+  info "Configuring git difftool aliases (recommended install)"
+fi
 
   info "Configuring git difftool aliases"
   if need_cmd difft || need_cmd difftastic; then
@@ -307,70 +312,8 @@ target_shell_rc() {
   fi
 }
 
-configure_shell() {
-  local rc_file
-  rc_file="$(target_shell_rc)"
+configure_shell() { info "Skipping shell alias configuration (disabled)"; return 0; }
 
-  info "The following aliases will be added to ${rc_file}:"
-  echo "  cx='codex exec'          # Run codex commands"
-  echo "  cxdiff='git difftool -y' # Launch git difftool"
-  echo "  fd='fdfind'              # fd-find alias (if applicable)"
-
-  if ! confirm "Add these aliases to your shell config?"; then
-    info "Skipping shell alias configuration"
-    return 0
-  fi
-
-  info "Updating shell rc: ${rc_file}"
-  mkdir -p "$(dirname "$rc_file")"
-
-  local begin="# >>> ${PROJECT} >>>"
-  local end="# <<< ${PROJECT} <<<"
-  local block
-  block=$(cat <<'EOF'
-# >>> codex-1up >>>
-# Aliases
-alias cx='codex exec'
-alias cxdiff='git difftool -y'
-# fd alias on Debian/Ubuntu
-if command -v fdfind >/dev/null 2>&1 && ! command -v fd >/dev/null 2>&1; then
-  alias fd='fdfind'
-fi
-# <<< codex-1up <<<
-EOF
-  )
-
-  # Remove existing block
-  if [ -f "$rc_file" ] && grep -q ">>> ${PROJECT} >>>" "$rc_file"; then
-    run sed -i.bak -e "/>>> ${PROJECT} >>>/,/<<< ${PROJECT} <</d" "$rc_file"
-  fi
-
-  if [[ "$rc_file" == *fish* ]]; then
-    block=$(cat <<'EOF'
-# >>> codex-1up >>>
-alias cx 'codex exec'
-alias cxdiff 'git difftool -y'
-if type -q fdfind; and not type -q fd
-  alias fd 'fdfind'
-end
-# <<< codex-1up <<<
-EOF
-    )
-  fi
-
-  if $DRY_RUN; then
-    echo "[dry-run] append block to ${rc_file}"
-  else
-    {
-      echo ""
-      echo "$begin"
-      echo "$block"
-      echo "$end"
-      echo ""
-    } >> "$rc_file"
-    ok "Appended aliases to ${rc_file}"
-  fi
-}
 
 
 _select_active_profile() {
@@ -450,6 +393,16 @@ maybe_prompt_global_agents() {
   if $SKIP_CONFIRMATION; then
     info "Skipping global AGENTS.md creation (non-interactive mode)"
     return 0
+  fi
+
+  if [ "${INSTALL_MODE}" = "recommended" ]; then
+    if [ ! -f "$target_path" ]; then
+      info "Writing global AGENTS.md to: ${target_path} (template: default)"
+      run mkdir -p "${HOME}/.codex"
+      run cp "${ROOT_DIR}/templates/agent-templates/AGENTS-default.md" "$target_path"
+      ok "Wrote ${target_path}"
+      return 0
+    fi
   fi
 
   info "Do you want to create a global AGENTS.md for personal guidance at ~/.codex/AGENTS.md?"
@@ -567,6 +520,25 @@ maybe_write_agents() {
 main() {
   info "==> ${PROJECT} installer"
   info "Log: ${LOG_FILE}"
+
+  # Choose install mode on first install
+  local first_cfg="${HOME}/.codex/config.toml"
+  local first_agents="${HOME}/.codex/AGENTS.md"
+  if ! $ASSUME_YES && ! $SKIP_CONFIRMATION; then
+    if [ ! -f "$first_cfg" ] && [ ! -f "$first_agents" ]; then
+      echo ""
+      info "Choose install mode:"
+      echo "  1) Recommended (most users) — sensible defaults; only asks on overwrite"
+      echo "  2) Manual (advanced) — confirm each optional step"
+      printf "Choose [1-2] (default: 1): "
+      local mode_choice="1"
+      read -r mode_choice || mode_choice="1"
+      case "$mode_choice" in
+        2|"manual"|"MANUAL") INSTALL_MODE="manual" ;;
+        *) INSTALL_MODE="recommended" ;;
+      esac
+    fi
+  fi
 
   ensure_node
   install_npm_globals

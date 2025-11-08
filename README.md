@@ -11,7 +11,7 @@
 - ✅ 4x **AGENTS.md** Templates: `generic` / `typescript` / `python` / `shell`
 - ✅ Unified **Codex config** with multiple profiles: `balanced` / `safe` / `minimal` / `yolo`
 - ✅ **semantic diffs** with `difftastic`
-- ✅ Adds **shell aliases** (`cx`, `cxdiff`)
+
 
 > ⚠️ **ATTENTION:** This tool is designed for experienced users. You can misconfigure or harm your system with this. Tested on: macOS with Homebrew, Node.js 22, and zsh. Other environments/os are untested. Backups are created during overwrite steps, but use at your own risk.
 
@@ -58,7 +58,7 @@ codex-1up install
 | **fzf**                   | Fuzzy‑finder to select among many matches.                                              |
 | **jq** / **yq**           | Reliable JSON/YAML processing on the command line.                                      |
 | **difftastic**            | Semantic code diffs for reviewing AI edits; falls back to `git-delta` when unavailable. |
-| **shell aliases**         | `cx` (one‑shot Codex), `cxdiff` (semantic diffs).                                       |
+| —                         | —                                                                                       |
 | **\~/.codex/config.toml** | Single template with multiple profiles. Active profile is chosen during install (default: `balanced`). See [Codex config reference](https://github.com/openai/codex/blob/main/docs/config.md). |
 | **AGENTS.md**             | Minimal per‑repo rubric; installer can also create global `~/.codex/AGENTS.md`.         |
 
@@ -150,7 +150,7 @@ git pull --ff-only
 ./bin/codex-1up install --yes  # add --skip-confirmation to suppress prompts
 ```
 
-Then open a new shell (or source your shell rc) to load any alias changes.
+Then open a new shell to ensure any PATH changes from your package manager are applied.
 
 ## Doctor & Uninstall
 
