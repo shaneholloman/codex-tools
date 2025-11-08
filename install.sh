@@ -396,9 +396,13 @@ _select_active_profile() {
   esac
   info "Setting active profile to: ${name}"
   if $DRY_RUN; then
-    echo "[dry-run] set profile = "${name}" in ${cfg_path}"
+    echo "[dry-run] set profile = \"${name}\" in ${cfg_path}"
   else
-    run sed -i.bak -e "s/^profile\s*=\s*".*"/profile = "${name}"/" "$cfg_path"
+    if grep -qE '^profile[[:space:]]*=' "$cfg_path"; then
+      run sed -i.bak -E "s/^profile[[:space:]]*=[[:space:]]*\".*\"/profile = \"${name}\"/" "$cfg_path"
+    else
+      run sed -i.bak -e "1s;^;profile = \"${name}\"\n;" "$cfg_path"
+    fi
   fi
 }
 
