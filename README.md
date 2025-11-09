@@ -67,6 +67,7 @@ See memory behavior with AGENTS.md in the official docs: [Memory with AGENTS.md]
 
 ### Notes
 - Global npm packages (`@openai/codex`, `@ast-grep/cli`) are checked and only missing/outdated versions are installed.
+- If `sg`/`ast-grep` is already available on your PATH (e.g., from Homebrew), the installer skips the npm install to avoid clobbering your existing binary.
 
 ## Doctor & Uninstall
 
