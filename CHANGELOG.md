@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 _No changes yet._
 
+## [0.2.1] - 2025-11-18
+
+### Fixed
+- Version now correctly reads from `package.json` instead of hardcoded `0.1.0` in CLI help output.
+
 ## [0.2.0] - 2025-11-18
 
 ### Changed
