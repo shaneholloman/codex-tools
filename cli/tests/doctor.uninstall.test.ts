@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
+import { runCommand } from 'citty'
 
 // Mock zx before importing modules under test
 vi.mock('zx', () => {
@@ -13,11 +14,11 @@ import { $ } from 'zx'
 
 describe('doctor/uninstall spawn', () => {
   it('spawns doctor', async () => {
-    await doctorCommand.run!({ args: {} as any })
+    await runCommand(doctorCommand, { rawArgs: [] })
     expect(($ as unknown as any).mock.calls.length).toBeGreaterThan(0)
   })
   it('spawns uninstall', async () => {
-    await uninstallCommand.run!({ args: {} as any })
+    await runCommand(uninstallCommand, { rawArgs: [] })
     expect(($ as unknown as any).mock.calls.length).toBeGreaterThan(1)
   })
 })

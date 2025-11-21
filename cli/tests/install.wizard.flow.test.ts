@@ -2,7 +2,9 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { promises as fs } from 'fs'
 import { tmpdir } from 'os'
 import { join, resolve } from 'path'
+import { runCommand } from 'citty'
 import { installCommand } from '../src/commands/install'
+import { buildRawArgsFromFlags } from './test-utils'
 
 const td = join(tmpdir(), `codex-1up-test-${Date.now()}-wizard`)
 const CH = resolve(td, '.codex')
@@ -53,7 +55,7 @@ describe('install wizard main flow', () => {
   it('prompts config options, sound, agents and passes correct options', async () => {
     // Force TTY
     Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true })
-    await installCommand.run!({ args: {} as any })
+    await runCommand(installCommand, { rawArgs: buildRawArgsFromFlags({}) })
     expect(captured.length).toBeGreaterThan(0)
     const opts = captured.pop()
     expect(opts.profile).toBe('safe')
@@ -83,7 +85,7 @@ describe('install wizard main flow', () => {
       if (msg.includes('Global ~/.codex/AGENTS.md')) return 'skip'
       return (options && options[0] && options[0].value) || null
     })
-    await installCommand.run!({ args: {} as any })
+    await runCommand(installCommand, { rawArgs: buildRawArgsFromFlags({}) })
     const opts = captured.pop()
     expect(opts.profile).toBe('balanced')
     expect(opts.profileScope).toBe('all')

@@ -2,7 +2,9 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { promises as fs } from 'fs'
 import { tmpdir } from 'os'
 import { join, resolve } from 'path'
+import { runCommand } from 'citty'
 import { installCommand } from '../src/commands/install'
+import { buildRawArgsFromFlags } from './test-utils'
 
 const td = join(tmpdir(), `codex-1up-test-${Date.now()}-args`)
 const CH = resolve(td, '.codex')
@@ -18,7 +20,7 @@ afterAll(async () => { try { await fs.rm(td, { recursive: true, force: true }) }
 describe('install args mapping', () => {
   it('maps common flags to installer options', async () => {
     Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true })
-    await installCommand.run!({ args: {
+    await runCommand(installCommand, { rawArgs: buildRawArgsFromFlags({
       yes: true,
       'skip-confirmation': true,
       'dry-run': true,
@@ -26,7 +28,7 @@ describe('install args mapping', () => {
       shell: 'zsh',
       vscode: 'openai.codex',
       'agents-md': '/tmp/AGENTS.md'
-    } as any })
+    }) })
     const opts = captured.pop()
     expect(opts.installNode).toBe('brew')
     expect(opts.shell).toBe('zsh')
@@ -40,15 +42,14 @@ describe('install args mapping', () => {
 
   it('honors --no-vscode over --vscode id', async () => {
     Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true })
-    await installCommand.run!({ args: {
+    await runCommand(installCommand, { rawArgs: buildRawArgsFromFlags({
       yes: true,
       'skip-confirmation': true,
       'no-vscode': true,
       vscode: 'openai.codex'
-    } as any })
+    }) })
     const opts = captured.pop()
     expect(opts.noVscode).toBe(true)
     // vscodeId may be present in args but should not be used when noVscode true; we only assert flag
   })
 })
-

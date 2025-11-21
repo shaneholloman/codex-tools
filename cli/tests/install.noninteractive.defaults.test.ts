@@ -2,7 +2,9 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { promises as fs } from 'fs'
 import { tmpdir } from 'os'
 import { join, resolve } from 'path'
+import { runCommand } from 'citty'
 import { installCommand } from '../src/commands/install'
+import { buildRawArgsFromFlags } from './test-utils'
 
 const td = join(tmpdir(), `codex-1up-test-${Date.now()}-nonint`)
 const CH = resolve(td, '.codex')
@@ -23,7 +25,9 @@ afterAll(async () => { try { await fs.rm(td, { recursive: true, force: true }) }
 describe('install non-interactive defaults', () => {
   it('uses safe defaults with --yes --skip-confirmation', async () => {
     Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true })
-    await installCommand.run!({ args: { yes: true, 'skip-confirmation': true } as any })
+    await runCommand(installCommand, {
+      rawArgs: buildRawArgsFromFlags({ yes: true, 'skip-confirmation': true })
+    })
     expect(captured.length).toBeGreaterThan(0)
     const opts = captured.pop()
     expect(opts.profile).toBe('balanced')

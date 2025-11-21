@@ -48,7 +48,7 @@ export const installCommand = defineCommand({
     sound: { type: 'string', description: 'Sound file, "none", or "skip" to leave unchanged' },
     'agents-md': { type: 'string', description: 'Write starter AGENTS.md to PATH (default PWD/AGENTS.md)', required: false }
   },
-  async run({ args }) {
+  async run({ args, rawArgs }) {
     const cfgPath = resolve(os.homedir(), '.codex', 'config.toml')
     const cfgExists = await pathExists(cfgPath)
     const notifyPath = resolve(os.homedir(), '.codex', 'notify.sh')
@@ -70,6 +70,8 @@ export const installCommand = defineCommand({
       : String(args.sound).trim()
 
     if (cliSoundArg === '') throw new Error('Invalid --sound value (expected path, "none", or "skip")')
+
+    const hasNoVscodeFlag = rawArgs.some(arg => arg === '--no-vscode' || arg.startsWith('--no-vscode='))
 
     const seededProfile = cliProfileChoice || (isProfile(currentProfile) ? currentProfile : undefined) || 'balanced'
     let profileChoice: 'balanced'|'safe'|'minimal'|'yolo'|'skip' = seededProfile
@@ -332,8 +334,8 @@ export const installCommand = defineCommand({
       mode: 'manual',
       installNode: (args['install-node'] as 'nvm'|'brew'|'skip') || 'nvm',
       shell: String(args.shell || 'auto'),
-      vscodeId: args.vscode ? String(args.vscode) : undefined,
-      noVscode: args['no-vscode'] || false,
+      vscodeId: hasNoVscodeFlag ? undefined : (args.vscode ? String(args.vscode) : undefined),
+      noVscode: hasNoVscodeFlag || args['no-vscode'] || false,
       agentsMd: typeof args['agents-md'] !== 'undefined' ? String(args['agents-md'] || process.cwd()) : undefined,
       dryRun: args['dry-run'] || false,
       assumeYes: args.yes || false,
