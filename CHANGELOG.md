@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 _No changes yet._
 
+## [0.2.4] - 2025-11-21
+
+### Changed
+- Changed default model from `gpt-5.1-codex-max` to `gpt-5.1-codex` for all profiles and root default
+
 ## [0.2.3] - 2025-11-21
 
 ### Added
