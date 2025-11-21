@@ -248,19 +248,38 @@ export const installCommand = defineCommand({
       }
 
       if (globalAgentsExists) {
+        p.note(`Global AGENTS.md is shared instructions Codex can reference in any repo. We add a short starter guide (fd/ast-grep/jq/yq patterns, deterministic selects).
+          
+        - Backups will be created
+        - If you think codex works worse with this instructions, you can remove them from ~/.codex/AGENTS.md anytime.
+        `)
         const agChoice = await p.select({
-          message: 'Global ~/.codex/AGENTS.md',
+          message: 'Global ~/.codex/AGENTS.md (optional)',
           options: [
-            { label: 'Add to your existing AGENTS.md (Backup will be created)', value: 'append-default' },
-            { label: 'Overwrite existing (Backup will be created)', value: 'overwrite-default' },
-            { label: 'Skip — leave as-is', value: 'skip' },
+            { label: 'Add to your existing AGENTS.md (keeps your content, adds ours; backup created)', value: 'append-default' },
+            { label: 'Overwrite existing (replace with starter; backup created)', value: 'overwrite-default' },
+            { label: 'Skip — leave as-is (you can run codex-1up agents later)', value: 'skip' },
           ],
           initialValue: 'append-default'
         }) as 'append-default'|'overwrite-default'|'skip'
         if (p.isCancel(agChoice)) return p.cancel('Install aborted')
         globalAgentsAction = agChoice
       } else {
-        globalAgentsAction = 'skip'
+        p.note(`Global AGENTS.md is shared instructions Codex can reference in any repo. We add a short starter guide (fd/ast-grep/jq/yq patterns, deterministic selects).
+          
+        - Backups will be created
+        - If you think codex works worse with this instructions, you can remove them from ~/.codex/AGENTS.md anytime.
+        `)
+        const agChoice = await p.select({
+          message: 'Global ~/.codex/AGENTS.md (optional)',
+          options: [
+            { label: 'Create starter AGENTS.md (recommended; helps give Codex repo context everywhere)', value: 'create-default' },
+            { label: 'Skip for now (you can add later with codex-1up agents --global)', value: 'skip' },
+          ],
+          initialValue: 'create-default'
+        }) as 'create-default'|'skip'
+        if (p.isCancel(agChoice)) return p.cancel('Install aborted')
+        globalAgentsAction = agChoice
       }
     }
 
