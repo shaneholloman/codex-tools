@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+_No changes yet._
+
+## [0.2.2] - 2025-11-21
+
 ### Changed
 - Updated all profiles (balanced, safe, minimal, yolo) to use `gpt-5.1-codex-max` model with `medium` reasoning effort by default
 - Enhanced `yolo` profile with high-performance settings:
