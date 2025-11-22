@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 _No changes yet._
 
+## [0.2.9] - 2025-01-27
+
+### Changed
+- Removed `model_reasoning_summary` and `model_verbosity` settings from the yolo profile configuration
+
 ## [0.2.8] - 2025-11-22
 
 ### Fixed
