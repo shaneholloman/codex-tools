@@ -2,6 +2,11 @@ import { which, $ } from 'zx'
 import { spawn } from 'node:child_process'
 import type { PackageManager, Logger } from './types.js'
 
+export type NodePmChoice =
+  | { pm: 'pnpm'; binDir: string }
+  | { pm: 'npm'; reason: 'npm-default' | 'pnpm-opt-out' }
+  | { pm: 'none'; reason: 'pnpm-misconfigured' | 'pnpm-error' | 'not-found' }
+
 // zx `$` is great for templated calls, but for dynamic
 // cmd + args we use Node's spawn for reliability.
 
@@ -42,21 +47,22 @@ export function createPrivilegedPmCmd(pmCmd: string): { cmd: string; argsPrefix:
 // Preference: pnpm -> npm (we avoid yarn global to prevent surprises)
 
 // Prefer pnpm if available and its global bin is configured; otherwise skip to avoid cross-manager installs.
-export async function chooseNodePmForGlobal(logger?: Logger): Promise<'pnpm' | 'npm' | 'none'> {
+export async function chooseNodePmForGlobal(logger?: Logger): Promise<NodePmChoice> {
   if (await needCmd('pnpm')) {
     try {
       const out = await $`pnpm bin -g`.quiet()
       const binDir = out.stdout.trim()
-      if (binDir) return 'pnpm'
+      if (binDir) return { pm: 'pnpm', binDir }
       // If empty, treat as misconfigured
       logger?.warn('Detected pnpm but global bin dir is not configured; skipping global Node installs to avoid duplicates. Run "pnpm setup" then re-run.')
+      return { pm: 'none', reason: 'pnpm-misconfigured' }
     } catch {
       logger?.warn('Detected pnpm but global bin dir is not configured; skipping global Node installs to avoid duplicates. Run "pnpm setup" then re-run.')
+      return { pm: 'none', reason: 'pnpm-error' }
     }
   }
-  // Fallback to npm only when pnpm is NOT present at all.
-  if (!(await needCmd('pnpm'))) return 'npm'
-  return 'none'
+  if (await needCmd('npm')) return { pm: 'npm', reason: 'npm-default' }
+  return { pm: 'none', reason: 'not-found' }
 }
 
 export async function runCommand(

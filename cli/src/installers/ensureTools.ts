@@ -210,11 +210,17 @@ async function ensureAstGrep(ctx: InstallerContext, pm: PackageManager): Promise
   if ((await needCmd('sg')) || (await needCmd('ast-grep'))) return
 
   // Fallback: npm global install
-  const nodePm = await chooseNodePmForGlobal(ctx.logger)
+  const nodePmChoice = await chooseNodePmForGlobal(ctx.logger)
+  const nodePm =
+    nodePmChoice.pm === 'none' && nodePmChoice.reason?.startsWith('pnpm-') ? 'npm' : nodePmChoice.pm
+
   if (nodePm === 'pnpm') {
     ctx.logger.info('Installing ast-grep via pnpm -g')
     await runCommand('pnpm', ['add', '-g', '@ast-grep/cli'], { dryRun: ctx.options.dryRun, logger: ctx.logger })
   } else if (nodePm === 'npm') {
+    if (nodePmChoice.pm === 'none') {
+      ctx.logger.warn('pnpm is misconfigured; falling back to npm for ast-grep install.')
+    }
     ctx.logger.info('Installing ast-grep via npm -g')
     await runCommand('npm', ['install', '-g', '@ast-grep/cli'], { dryRun: ctx.options.dryRun, logger: ctx.logger })
   } else if (!attemptedPm) {
