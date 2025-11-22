@@ -86,9 +86,40 @@ export async function installNpmGlobals(ctx: InstallerContext): Promise<void> {
   }
 
   if (updates.length > 0) {
-    const nodePm = await chooseNodePmForGlobal(ctx.logger)
+    const pmChoice = await chooseNodePmForGlobal(ctx.logger)
+
+    const canPromptForPm =
+      process.stdout.isTTY &&
+      !ctx.options.dryRun &&
+      !ctx.options.skipConfirmation &&
+      !ctx.options.assumeYes
+
+    let nodePm = pmChoice.pm
+
+    if (pmChoice.pm === 'none' && pmChoice.reason?.startsWith('pnpm-')) {
+      if (canPromptForPm) {
+        const fallback = await p.select({
+          message: 'pnpm is installed but its global bin is not configured. How should we proceed?',
+          initialValue: 'npm',
+          options: [
+            { value: 'npm', label: 'Use npm for global installs this run' },
+            { value: 'skip', label: 'Skip global installs (run "pnpm setup" then re-run)' }
+          ]
+        })
+        if (p.isCancel(fallback) || fallback === 'skip') {
+          ctx.logger.warn('Skipping global Node installs; pnpm is misconfigured. Run "pnpm setup" then re-run the installer.')
+          return
+        }
+        ctx.logger.info('pnpm misconfigured; falling back to npm for global installs.')
+        nodePm = 'npm'
+      } else {
+        ctx.logger.warn('pnpm detected but global bin dir is not configured; falling back to npm for this run. Run "pnpm setup" to use pnpm.')
+        nodePm = 'npm'
+      }
+    }
+
     if (nodePm === 'none') {
-      ctx.logger.warn('Skipping global Node installs because pnpm is detected but not configured. Run "pnpm setup" and re-run the installer.')
+      ctx.logger.warn('Skipping global Node installs because no supported package manager was found.')
     } else if (nodePm === 'pnpm') {
       ctx.logger.info('Installing/updating global packages via pnpm')
       await runCommand('pnpm', ['add', '-g', ...updates], {
