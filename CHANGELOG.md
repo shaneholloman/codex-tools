@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 
 _No changes yet._
 
+## [0.2.8] - 2025-01-XX
+
+### Fixed
+- Handled misconfigured pnpm so Codex CLI upgrades still run:
+  - In `src/installers/installNpmGlobals.ts`, if `pnpm bin -g` is empty we now prompt (interactive) to fall back to npm or skip; in non-interactive/assume-yes modes we automatically fall back to npm and proceed with the upgrade. Keeps the Codex install path working instead of skipping.
+  - `chooseNodePmForGlobal` (`src/installers/utils.ts`) now returns a structured choice with reasons, so callers can react to pnpm misconfig instead of silently giving up.
+  - Applied the same safe fallback in `src/installers/ensureTools.ts` so other global installs (e.g., ast-grep) don't get stranded when pnpm is misconfigured.
+  - Added coverage in `tests/install.pnpm.fallback.test.ts` for both interactive prompt and non-interactive fallback.
+
 ## [0.2.6] - 2025-11-21
 
 ### Added
