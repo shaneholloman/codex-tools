@@ -43,7 +43,7 @@ export const installCommand = defineCommand({
     tools: { type: 'string', description: 'yes|no install/upgrade core CLI tools (rg, fd, fzf, jq, yq, difftastic)' },
     'codex-cli': { type: 'string', description: 'yes|no install/upgrade Codex CLI + ast-grep globally' },
     'profiles-scope': { type: 'string', description: 'single|all (write one profile or all profiles)' },
-    profile: { type: 'string', description: 'balanced|safe|minimal|yolo|skip (choose profile to write)' },
+    profile: { type: 'string', description: 'balanced|safe|yolo|skip (choose profile to write)' },
     'profile-mode': { type: 'string', description: 'add|overwrite (profile table merge strategy)' },
     sound: { type: 'string', description: 'Sound file, "none", or "skip" to leave unchanged' },
     'agents-md': { type: 'string', description: 'Write starter AGENTS.md to PATH (default PWD/AGENTS.md)', required: false }
@@ -74,7 +74,7 @@ export const installCommand = defineCommand({
     const hasNoVscodeFlag = rawArgs.some(arg => arg === '--no-vscode' || arg.startsWith('--no-vscode='))
 
     const seededProfile = cliProfileChoice || (isProfile(currentProfile) ? currentProfile : undefined) || 'balanced'
-    let profileChoice: 'balanced'|'safe'|'minimal'|'yolo'|'skip' = seededProfile
+    let profileChoice: 'balanced'|'safe'|'yolo'|'skip' = seededProfile
     let profileMode: 'add'|'overwrite' = cliProfileMode || 'add'
     let profileScope: 'single'|'all' = cliProfileScope || 'single'
     let setDefaultProfile = true
@@ -123,7 +123,7 @@ export const installCommand = defineCommand({
       // Profile scope + selection + mode + default
       if (!cliProfileScope) {
         const scopeResponse = await p.select({
-          message: 'Install all profiles (balanced, safe, minimal, yolo)?',
+          message: 'Install all profiles (balanced, safe, yolo)?',
           options: [
             { label: 'Yes — install/update all profiles', value: 'all' },
             { label: 'No — choose a single profile', value: 'single' }
@@ -138,21 +138,19 @@ export const installCommand = defineCommand({
         p.note([
           'Profiles:',
           '  • Balanced: on-request approvals, workspace-write sandbox, web search on.',
-          '  • Safe: on-failure approvals, workspace-write, web search off.',
-          '  • Minimal: lean settings, minimal reasoning effort, web search off.',
-          '  • YOLO: never approvals, danger-full-access, web search on, verbose.'
+          '  • Safe: on-failure approvals, read-only sandbox, web search off.',
+          '  • YOLO: never approvals, danger-full-access, gpt-5.1-codex-max, high reasoning.'
         ].join('\n'))
         const profileResponse = await p.select({
           message: 'Choose a Codex profile to install',
           options: [
             { label: 'Balanced (recommended)', value: 'balanced', hint: 'on-request approvals · workspace-write · web search on' },
-            { label: 'Safe', value: 'safe', hint: 'on-failure approvals · workspace-write · web search off' },
-            { label: 'Minimal', value: 'minimal', hint: 'lean defaults · minimal reasoning effort · web search off' },
-            { label: 'YOLO', value: 'yolo', hint: 'never approvals · danger-full-access · web search on' },
+            { label: 'Safe', value: 'safe', hint: 'on-failure approvals · read-only · web search off' },
+            { label: 'YOLO', value: 'yolo', hint: 'never approvals · danger-full-access · gpt-5.1-codex-max' },
             ...(profileScope === 'single' ? [{ label: 'Skip (no profile changes)', value: 'skip' as const }] : [])
           ],
           initialValue: initialProfileValue(currentProfile) as any
-        }) as 'balanced'|'safe'|'minimal'|'yolo'|'skip'
+        }) as 'balanced'|'safe'|'yolo'|'skip'
         if (p.isCancel(profileResponse)) return p.cancel('Install aborted')
         profileChoice = profileResponse
       } else if (profileScope === 'all' && profileChoice === 'skip') {
@@ -167,8 +165,8 @@ export const installCommand = defineCommand({
             ? 'How should we write all profiles?'
             : `How should we write profiles.${profileChoice}?`,
           options: [
-            { label: 'Add / merge (preserve custom keys)', value: 'add' },
-            { label: 'Overwrite codex profile (replace table)', value: 'overwrite' }
+            { label: 'Overwrite (use codex-1up defaults)', value: 'overwrite' },
+            { label: 'Add Merge (add missing, keep your default settings)', value: 'add' }
           ],
           initialValue: profileMode
         }) as 'add'|'overwrite'
@@ -437,12 +435,12 @@ async function pathExists(path: string) {
   try { await fs.access(path); return true } catch { return false }
 }
 
-function normalizeProfileArg(value: unknown): ('balanced'|'safe'|'minimal'|'yolo'|'skip') | undefined {
+function normalizeProfileArg(value: unknown): ('balanced'|'safe'|'yolo'|'skip') | undefined {
   if (value === undefined || value === null) return undefined
   const normalized = String(value).toLowerCase()
   if (isProfile(normalized)) return normalized
   if (normalized === 'skip') return 'skip'
-  throw new Error('Invalid --profile value (use balanced|safe|minimal|yolo|skip).')
+  throw new Error('Invalid --profile value (use balanced|safe|yolo|skip).')
 }
 
 function normalizeProfileMode(value: unknown): ('add'|'overwrite') | undefined {
@@ -473,11 +471,11 @@ function normalizeYesNoArg(value: unknown): ('yes'|'no') | undefined {
   throw new Error('Expected yes|no')
 }
 
-function isProfile(value: unknown): value is 'balanced'|'safe'|'minimal'|'yolo' {
-  return value === 'balanced' || value === 'safe' || value === 'minimal' || value === 'yolo'
+function isProfile(value: unknown): value is 'balanced'|'safe'|'yolo' {
+  return value === 'balanced' || value === 'safe' || value === 'yolo'
 }
 
-function initialProfileValue(currentProfile: string | undefined): 'balanced'|'safe'|'minimal'|'yolo'|'skip' {
+function initialProfileValue(currentProfile: string | undefined): 'balanced'|'safe'|'yolo'|'skip' {
   if (isProfile(currentProfile)) return currentProfile
   return 'balanced'
 }

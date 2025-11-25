@@ -21,16 +21,6 @@ describe('config init/write', () => {
     expect(data).toMatch(/\[features\]\s*\nweb_search_request\s*=\s*true/)
   })
 
-  it('does not set unsupported reasoning summary in minimal profile', async () => {
-    process.env.HOME = td
-    await runCommand(root, { rawArgs: ['config', 'init', '--force'] })
-    const data = await fs.readFile(CFG, 'utf8')
-    // Ensure minimal profile does not force an unsupported summary value
-    // Match from [profiles.minimal] up to the next profile or end of file, but not beyond
-    const minimalSection = data.match(/\[profiles\.minimal\][\s\S]*?(?=\[profiles\.|$)/)?.[0] || ''
-    expect(minimalSection).not.toMatch(/model_reasoning_summary\s*=/)
-  })
-
   it('enables reasoning steps in TUI by default', async () => {
     process.env.HOME = td
     await runCommand(root, { rawArgs: ['config', 'init', '--force'] })

@@ -82,7 +82,7 @@ describe('writeCodexConfig targeted patches', () => {
   })
 
   it('sets the root profile when requested', async () => {
-    const initial = `model = "gpt"\nprofile = "minimal"\n`
+    const initial = `model = "gpt"\nprofile = "balanced"\n`
     const { ctx, cfgPath, cleanup } = await setupContext(initial)
     ctx.options.profile = 'yolo'
     ctx.options.profileScope = 'single'

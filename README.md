@@ -8,7 +8,7 @@
 - ✅ Installs/updates **Codex CLI** (`@openai/codex`)
 - ✅ Adds fast shell power tools: `ast-grep`, `fd`, `ripgrep`, `rg`, `fzf`, `jq`, `yq`
 - ✅ **AGENTS.md** template with tool selection guide
-- ✅ Unified **Codex config** with multiple profiles: `balanced` / `safe` / `minimal` / `yolo`
+- ✅ Unified **Codex config** with multiple profiles: `balanced` / `safe` / `yolo`
 - ✅ 🔊 **Notification sounds** with customizable audio alerts for Codex events
 
 ![Screenshot of Codex 1UP terminal interface](./public/example.png)
@@ -51,18 +51,17 @@ codex-1up install
 
 ### Profiles
 
-| Profile | Description |
-| --- | --- |
-| balanced (default) | Approvals on-request; workspace-write sandbox with network access inside workspace. |
-| safe | Approvals on-failure; workspace-write sandbox; conservative. |
-| minimal | Medium reasoning effort; web search off. |
-| yolo | Never ask for approvals; danger-full-access (only trusted environments). ⚠️ **Warning:** Grants full system access—use with extreme caution. |
+| Profile | Model | Sandbox | Description |
+| --- | --- | --- | --- |
+| balanced (default) | gpt-5.1-codex | workspace-write | Approvals on-request; web search on. Standard for everyday use. |
+| safe | gpt-5.1-codex | read-only | Approvals on-failure; web search off. Maximum security for critical repos. |
+| yolo | gpt-5.1-codex-max | danger-full-access | Never ask for approvals; high reasoning; optimized for long autonomous sessions. ⚠️ **Warning:** Grants full system access. |
 
 Switch profiles anytime: `codex --profile <name>` for a session, or `codex-1up config set-profile <name>` to persist.
 
 ## Global guidance with AGENTS.md (optional)
 
-You can keep a global guidance file at `~/.codex/AGENTS.md` that Codex will use across projects. During install, you’ll be prompted to create this; if you skip, you can create it later:
+You can keep a global guidance file at `~/.codex/AGENTS.md` that Codex will use across projects. During install, you'll be prompted to create this; if you skip, you can create it later:
 
 ```bash
 # Create the directory if needed and write the template there
@@ -80,7 +79,7 @@ See memory behavior with AGENTS.md in the official docs: [Memory with AGENTS.md]
 ./bin/codex-1up uninstall
 ```
 
-> **Note:** This project is **idempotent**—running it again will skip what’s already installed. It won’t remove packages on uninstall; it cleans up files under ~/.codex (backups are retained).
+> **Note:** This project is **idempotent**—running it again will skip what's already installed. It won't remove packages on uninstall; it cleans up files under ~/.codex (backups are retained).
 
 ## Supported platforms
 
@@ -98,7 +97,7 @@ See memory behavior with AGENTS.md in the official docs: [Memory with AGENTS.md]
 - `--install-node nvm|brew|skip` : how to install Node.js if missing (default: `nvm`)
 - `--codex-cli yes|no`     : install/upgrade Codex CLI (default: `yes` on macOS/Linux)
 - `--tools yes|no`        : install/upgrade tools: rg, fd, fzf, jq, yq, difftastic, ast-grep (default: `yes` on macOS/Linux)
-- `--profile balanced|safe|minimal|yolo|skip` : profile to write (default: `balanced`)
+- `--profile balanced|safe|yolo|skip` : profile to write (default: `balanced`)
 - `--profile-mode add|overwrite` : profile merge strategy (default: `add`)
 
 ### Advanced / CI flags

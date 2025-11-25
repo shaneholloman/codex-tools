@@ -5,7 +5,7 @@
 model = "gpt-5.1-codex"
 approval_policy = "on-request"       # untrusted|on-failure|on-request|never
 sandbox_mode   = "workspace-write"   # read-only|workspace-write|danger-full-access
-profile = "balanced"                 # active profile: balanced|safe|minimal|yolo
+profile = "balanced"                 # active profile: balanced|safe|yolo
 
 # Extra settings that only apply when `sandbox = "workspace-write"`.
 [sandbox_workspace_write]
@@ -42,28 +42,26 @@ approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 model = "gpt-5.1-codex"
 model_reasoning_effort = "medium"
+model_reasoning_summary = "concise"
 [profiles.balanced.features]
 web_search_request = true
 
 [profiles.safe]
 approval_policy = "on-failure"
-sandbox_mode = "workspace-write"
+sandbox_mode = "read-only"
 model = "gpt-5.1-codex"
 model_reasoning_effort = "medium"
+model_reasoning_summary = "concise"
 [profiles.safe.features]
-web_search_request = false
-
-[profiles.minimal]
-model = "gpt-5.1-codex"
-model_reasoning_effort = "medium"
-[profiles.minimal.features]
 web_search_request = false
 
 [profiles.yolo]
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
-model = "gpt-5.1-codex"
-model_reasoning_effort = "medium"
+model = "gpt-5.1-codex-max"
+model_reasoning_effort = "high"
+model_reasoning_summary = "detailed"
 tool_output_token_limit = 25000
+model_auto_compact_token_limit = 233000  # 273k - (25k tool_output + 15k buffer)
 [profiles.yolo.features]
 web_search_request = true

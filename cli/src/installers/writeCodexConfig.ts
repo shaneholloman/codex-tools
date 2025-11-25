@@ -14,23 +14,18 @@ const PROFILE_DEFAULTS: Record<Profile, ProfileDefaults> = {
       ['approval_policy', '"on-request"'],
       ['sandbox_mode', '"workspace-write"'],
       ['model', '"gpt-5.1-codex"'],
-      ['model_reasoning_effort', '"medium"']
+      ['model_reasoning_effort', '"medium"'],
+      ['model_reasoning_summary', '"concise"']
     ],
     features: [['web_search_request', 'true']]
   },
   safe: {
     root: [
       ['approval_policy', '"on-failure"'],
-      ['sandbox_mode', '"workspace-write"'],
+      ['sandbox_mode', '"read-only"'],
       ['model', '"gpt-5.1-codex"'],
-      ['model_reasoning_effort', '"medium"']
-    ],
-    features: [['web_search_request', 'false']]
-  },
-  minimal: {
-    root: [
-      ['model', '"gpt-5.1-codex"'],
-      ['model_reasoning_effort', '"medium"']
+      ['model_reasoning_effort', '"medium"'],
+      ['model_reasoning_summary', '"concise"']
     ],
     features: [['web_search_request', 'false']]
   },
@@ -38,9 +33,11 @@ const PROFILE_DEFAULTS: Record<Profile, ProfileDefaults> = {
     root: [
       ['approval_policy', '"never"'],
       ['sandbox_mode', '"danger-full-access"'],
-      ['model', '"gpt-5.1-codex"'],
-      ['model_reasoning_effort', '"medium"'],
-      ['tool_output_token_limit', '25000']
+      ['model', '"gpt-5.1-codex-max"'],
+      ['model_reasoning_effort', '"high"'],
+      ['model_reasoning_summary', '"detailed"'],
+      ['tool_output_token_limit', '25000'],
+      ['model_auto_compact_token_limit', '233000']
     ],
     features: [['web_search_request', 'true']]
   }

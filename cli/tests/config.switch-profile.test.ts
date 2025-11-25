@@ -16,9 +16,9 @@ describe('config set-profile', () => {
   it('sets profile at root', async () => {
     process.env.HOME = td
     await runCommand(root, { rawArgs: ['config', 'init', '--force'] })
-    await runCommand(root, { rawArgs: ['config', 'set-profile', 'minimal'] })
+    await runCommand(root, { rawArgs: ['config', 'set-profile', 'safe'] })
     const data = await fs.readFile(CFG, 'utf8')
-    expect(data).toMatch(/profile\s*=\s*"minimal"/)
+    expect(data).toMatch(/profile\s*=\s*"safe"/)
   })
 })
 

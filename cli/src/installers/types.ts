@@ -1,4 +1,4 @@
-export type Profile = 'balanced' | 'safe' | 'minimal' | 'yolo'
+export type Profile = 'balanced' | 'safe' | 'yolo'
 export type ProfileSelection = Profile | 'skip'
 export type ProfileMode = 'add' | 'overwrite'
 export type ProfileScope = 'single' | 'all'

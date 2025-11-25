@@ -6,6 +6,21 @@ All notable changes to this project will be documented in this file.
 
 _No changes yet._
 
+## [0.3.0] - 2025-11-25
+
+### Changed
+- **Breaking:** Removed `minimal` profile - only `balanced`, `safe`, and `yolo` profiles remain
+- Updated `yolo` profile:
+  - Changed model to `gpt-5.1-codex-max` (was `gpt-5.1-codex`)
+  - Added `model_auto_compact_token_limit = 233000` for optimized long sessions
+  - Removed `model_verbosity` (not supported by gpt-5.1-codex models)
+- Updated `safe` profile:
+  - Changed `sandbox_mode` to `read-only` (was `workspace-write`) for maximum security
+  - Added `model_reasoning_summary = "concise"`
+- Updated `balanced` profile:
+  - Added `model_reasoning_summary = "concise"`
+- Streamlined profile selection UI (3 profiles instead of 4)
+
 ## [0.2.9] - 2025-01-27
 
 ### Changed
