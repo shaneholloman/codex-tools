@@ -341,14 +341,18 @@ export const installCommand = defineCommand({
     }
 
     if (runWizard) {
-      const s = p.spinner()
-      s.start('Installing prerequisites and writing config')
+      // NOTE: We intentionally don't use a spinner here because:
+      // 1. Package manager commands (apt-get, dnf, etc.) may require sudo password input
+      // 2. npm/pnpm may show confirmation prompts
+      // 3. A spinner would overwrite/hide these prompts, causing the install to appear "stuck"
+      // Instead, we show phase-based status messages and let subprocess output be visible.
+      p.log.info('Installing prerequisites and writing config...')
+      p.log.warn('Some steps may require sudo password or confirmation prompts.')
       try {
         await runInstaller(installerOptions, repoRoot)
-        s.stop('Base install complete')
+        p.log.success('Base install complete')
         p.outro('Install finished')
       } catch (error) {
-        s.stop('Installation failed')
         p.cancel(`Installation failed: ${error}`)
         throw error
       }
