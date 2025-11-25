@@ -29,8 +29,8 @@ export async function ensureTools(ctx: InstallerContext): Promise<void> {
   const packages = PACKAGE_MAP[pm] || []
 
   if (packages.length > 0) {
-    // Warn about sudo requirement for Linux package managers
-    if (pm !== 'brew' && pm !== 'none') {
+    // Warn about sudo requirement for Linux package managers (not needed for brew)
+    if (pm !== 'brew') {
       const isRoot = typeof process.getuid === 'function' && process.getuid() === 0
       if (!isRoot) {
         ctx.logger.warn('Package installation may require sudo password. Please enter it when prompted.')

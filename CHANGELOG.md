@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 _No changes yet._
 
+## [0.3.2] - 2025-11-25
+
+### Fixed
+- Fixed TypeScript type error in ensureTools.ts (redundant 'none' check after early return)
+
 ## [0.3.1] - 2025-11-25
 
 ### Fixed
