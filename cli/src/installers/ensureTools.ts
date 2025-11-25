@@ -29,6 +29,14 @@ export async function ensureTools(ctx: InstallerContext): Promise<void> {
   const packages = PACKAGE_MAP[pm] || []
 
   if (packages.length > 0) {
+    // Warn about sudo requirement for Linux package managers
+    if (pm !== 'brew' && pm !== 'none') {
+      const isRoot = typeof process.getuid === 'function' && process.getuid() === 0
+      if (!isRoot) {
+        ctx.logger.warn('Package installation may require sudo password. Please enter it when prompted.')
+      }
+    }
+
     switch (pm) {
       case 'brew':
         await runCommand('brew', ['update'], {
@@ -43,6 +51,7 @@ export async function ensureTools(ctx: InstallerContext): Promise<void> {
       case 'apt':
         {
           const { cmd: aptCmd, argsPrefix } = createPrivilegedPmCmd('apt-get')
+          ctx.logger.info('Running apt-get update...')
           try {
             await runCommand(aptCmd, [...argsPrefix, 'update', '-y'], {
               dryRun: ctx.options.dryRun,

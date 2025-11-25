@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-_No changes yet._
+### Fixed
+- Fixed spinner blocking sudo password prompts and TTY input on Linux (#14)
+  - Removed continuous spinner during installation that was overwriting terminal output
+  - sudo password prompts, npm confirmations, and other TTY interactions now display correctly
+  - Added clear status messages for each installation phase
+  - Added warning about potential sudo password requirement before Linux package installations
 
 ## [0.3.0] - 2025-11-25
 
