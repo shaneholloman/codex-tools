@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.3] - 2025-12-07
+
 ### Changed
 - Notification sound configuration now lives entirely in `~/.codex/notify.sh`
   - Removed shell rc file manipulation (no more writes to `.bashrc`/`.zshrc`/`config.fish`)
