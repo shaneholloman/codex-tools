@@ -60,7 +60,7 @@ describe('writeCodexConfig targeted patches', () => {
     const data = await fs.readFile(cfgPath, 'utf8')
     expect(data).toMatch(/\[profiles\.balanced\][\s\S]*approval_policy\s*=\s*"custom"/)
     expect(data).toMatch(/\[profiles\.balanced\][\s\S]*sandbox_mode\s*=\s*"workspace-write"/)
-    expect(data).toMatch(/\[profiles\.balanced\][\s\S]*model\s*=\s*"gpt-5.2"/)
+    expect(data).toMatch(/\[profiles\.balanced\][\s\S]*model\s*=\s*"gpt-5.2-codex"/)
     expect(data).toMatch(/\[profiles\.balanced\][\s\S]*model_reasoning_effort\s*=\s*"medium"/)
     expect(data).toMatch(/\[profiles\.balanced\.features\][\s\S]*web_search_request\s*=\s*true/)
     await cleanup()
@@ -74,7 +74,7 @@ describe('writeCodexConfig targeted patches', () => {
     await writeCodexConfig(ctx)
     const data = await fs.readFile(cfgPath, 'utf8')
     expect(data).toMatch(/\[profiles\.safe\][\s\S]*approval_policy\s*=\s*"on-failure"/)
-    expect(data).toMatch(/\[profiles\.safe\][\s\S]*model\s*=\s*"gpt-5.2"/)
+    expect(data).toMatch(/\[profiles\.safe\][\s\S]*model\s*=\s*"gpt-5.2-codex"/)
     expect(data).toMatch(/\[profiles\.safe\][\s\S]*model_reasoning_effort\s*=\s*"medium"/)
     expect(data).not.toMatch(/\[profiles\.safe\][\s\S]*extra_key/)
     expect(data).toMatch(/\[profiles\.safe\.features\][\s\S]*web_search_request\s*=\s*false/)
@@ -113,6 +113,85 @@ describe('writeCodexConfig targeted patches', () => {
     await writeCodexConfig(ctx)
     const data = await fs.readFile(cfgPath, 'utf8')
     expect(data).toMatch(/\[tui\][\s\S]*notifications\s*=\s*true/)
+    await cleanup()
+  })
+
+  it('migrates enable_experimental_windows_sandbox to experimental_windows_sandbox in [features]', async () => {
+    const initial = `[features]\nenable_experimental_windows_sandbox = true\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[features\][\s\S]*experimental_windows_sandbox\s*=\s*true/)
+    expect(data).not.toMatch(/enable_experimental_windows_sandbox/)
+    await cleanup()
+  })
+
+  it('drops enable_experimental_windows_sandbox if experimental_windows_sandbox is already present', async () => {
+    const initial = `[features]\nexperimental_windows_sandbox = false\nenable_experimental_windows_sandbox = true\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[features\][\s\S]*experimental_windows_sandbox\s*=\s*false/)
+    expect(data).not.toMatch(/enable_experimental_windows_sandbox/)
+    await cleanup()
+  })
+
+  it('migrates a legacy root enable_experimental_windows_sandbox into [features]', async () => {
+    const initial = `enable_experimental_windows_sandbox = true\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[features\][\s\S]*experimental_windows_sandbox\s*=\s*true/)
+    expect(data).not.toMatch(/enable_experimental_windows_sandbox/)
+    await cleanup()
+  })
+
+  it('migrates experimental_use_exec_command_tool to [features].streamable_shell', async () => {
+    const initial = `experimental_use_exec_command_tool = true\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[features\][\s\S]*streamable_shell\s*=\s*true/)
+    expect(data).not.toMatch(/experimental_use_exec_command_tool/)
+    await cleanup()
+  })
+
+  it('drops experimental_use_exec_command_tool if streamable_shell is already set', async () => {
+    const initial = `experimental_use_exec_command_tool = true\n[features]\nstreamable_shell = false\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[features\][\s\S]*streamable_shell\s*=\s*false/)
+    expect(data).not.toMatch(/experimental_use_exec_command_tool/)
+    await cleanup()
+  })
+
+  it('migrates multiple legacy root feature flags into [features]', async () => {
+    const initial = [
+      'experimental_use_unified_exec_tool = true',
+      'include_apply_patch_tool = true',
+      'experimental_use_rmcp_client = false',
+      '',
+      '[features]',
+      'web_search_request = true',
+      ''
+    ].join('\n')
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[features\][\s\S]*web_search_request\s*=\s*true/)
+    expect(data).toMatch(/\[features\][\s\S]*unified_exec\s*=\s*true/)
+    expect(data).toMatch(/\[features\][\s\S]*apply_patch_freeform\s*=\s*true/)
+    expect(data).toMatch(/\[features\][\s\S]*rmcp_client\s*=\s*false/)
+    expect(data).not.toMatch(/experimental_use_unified_exec_tool/)
+    expect(data).not.toMatch(/include_apply_patch_tool/)
+    expect(data).not.toMatch(/experimental_use_rmcp_client/)
     await cleanup()
   })
 })

@@ -2,7 +2,7 @@
 # Adjust to your liking. See Codex CLI docs for full options.
 
 # Core (root defaults)
-model = "gpt-5.2"
+model = "gpt-5.2-codex"
 approval_policy = "on-request"       # untrusted|on-failure|on-request|never
 sandbox_mode   = "workspace-write"   # read-only|workspace-write|danger-full-access
 profile = "balanced"                 # active profile: balanced|safe|yolo
@@ -33,14 +33,14 @@ apply_patch_freeform = false
 view_image_tool = true
 experimental_sandbox_command_assessment = false
 ghost_commit = false
-enable_experimental_windows_sandbox = false
+experimental_windows_sandbox = false
 
 # ---- Profiles (override only what differs from root) -----------------------
 
 [profiles.balanced]
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
-model = "gpt-5.2"
+model = "gpt-5.2-codex"
 model_reasoning_effort = "medium"
 model_reasoning_summary = "concise"
 [profiles.balanced.features]
@@ -49,7 +49,7 @@ web_search_request = true
 [profiles.safe]
 approval_policy = "on-failure"
 sandbox_mode = "read-only"
-model = "gpt-5.2"
+model = "gpt-5.2-codex"
 model_reasoning_effort = "medium"
 model_reasoning_summary = "concise"
 [profiles.safe.features]
@@ -58,7 +58,7 @@ web_search_request = false
 [profiles.yolo]
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
-model = "gpt-5.2"
+model = "gpt-5.2-codex"
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 [profiles.yolo.features]

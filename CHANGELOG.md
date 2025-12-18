@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Default Codex model is now `gpt-5.2-codex` in the unified config template and installer-written profiles.
+- Migrate deprecated `enable_experimental_windows_sandbox` to `[features].experimental_windows_sandbox` when patching `~/.codex/config.toml`.
+- Migrate deprecated root-level feature booleans (e.g. `experimental_use_unified_exec_tool`) into `[features]` when patching `~/.codex/config.toml`.
+
 ## [0.3.4] - 2025-12-11
 
 ### Changed
