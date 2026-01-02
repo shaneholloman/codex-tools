@@ -71,6 +71,8 @@ jobs:
       - name: Publish to npm (OIDC)
         working-directory: cli
         run: npm publish --access public --provenance --tag ${{ steps.release.outputs.dist }}
+        env:
+          NODE_AUTH_TOKEN: ''
 
       - name: Cleanup package assets
         if: always()
