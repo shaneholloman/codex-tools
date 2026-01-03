@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.7] - 2026-01-03
+
+### Changed
+- Removed the `codex-1up skills remove` command to avoid destructive file deletion.
+- Installer: default `--install-node` is now `skip`, and interactive runs confirm before downloading/running remote installer scripts.
+- CI: tightened `pkg-pr-new` preview publishing (non-fork only, minimal permissions, pinned version) and fail PR checks when typecheck/tests/build fail.
+
+### Fixed
+- Avoid logging full Codex config contents during `--dry-run` and tighten installer log file/dir permissions.
+- Updated `doctor` to report `web_search_request` from `[features]` / `[profiles.<name>.features]`.
+
 ## [0.3.6] - 2026-01-02
 
 ### Added
