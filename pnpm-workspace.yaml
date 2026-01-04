@@ -1,2 +1,6 @@
 packages:
   - "cli"
+
+# Keep pnpm-specific settings here (instead of .npmrc) so npm doesn't warn on unknown config keys.
+preferWorkspacePackages: true
+sharedWorkspaceLockfile: true
