@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.12] - 2026-01-21
+
+### Fixed
+- Homebrew: ensure `codex-1up` is installed into Homebrew’s `bin` by explicitly installing the package’s bin entrypoint after `npm install`.
+- CI: fix TypeScript typecheck failures in tests (CI runs `pnpm -C cli exec tsc --noEmit`).
+
 ## [0.3.11] - 2026-01-21
 
 ### Added
@@ -22,7 +28,6 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Installer: ensure GitHub CLI (`gh`) installs reliably on apt-based systems by setting up the official GitHub CLI apt repo when needed.
 - Config patcher: normalize invalid `model_reasoning_summary` values for `*-codex` models (see [Codex changelog](https://developers.openai.com/codex/changelog)). Thanks to [@calinfaja](https://github.com/calinfaja) for the report ([#34](https://github.com/regenrek/codex-1up/issues/34)).
-- Homebrew: fix generated formula to use `std_npm_args` (instead of `std_npm_install_args`) so `brew install regenrek/tap/codex-1up` works.
 
 ### Added
 - Tests: additional coverage around config patching and installer behavior.

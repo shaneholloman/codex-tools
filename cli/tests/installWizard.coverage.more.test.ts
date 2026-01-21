@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { promises as fs } from 'fs'
 import { tmpdir } from 'os'
 import { join, resolve } from 'path'
+import type { InstallWizardInput } from '../src/flows/installWizard.js'
 
 // Mock clack prompts; individual tests override behavior via closures.
 const promptState: {
@@ -82,6 +83,7 @@ describe('runInstallWizard (extra coverage)', () => {
       '# AGENTS\n\n## Rules\n\n- Be deterministic\n',
       'utf8'
     )
+    const cliArgs: InstallWizardInput['cliArgs'] = {}
     return {
       repoRoot,
       isUnixLike: true,
@@ -90,7 +92,7 @@ describe('runInstallWizard (extra coverage)', () => {
       seededProfile: 'balanced' as const,
       bundledSkills: [{ id: 'debug-lldb', description: 'debug', path: '/tmp/skill' }],
       availableTools: [{ id: 'rg', bins: ['rg'], packages: { brew: ['ripgrep'], apt: ['ripgrep'], dnf: ['ripgrep'], pacman: ['ripgrep'], zypper: ['ripgrep'] } }],
-      cliArgs: {},
+      cliArgs,
       selections: {
         profileChoice: 'balanced' as const,
         profileMode: 'add' as const,

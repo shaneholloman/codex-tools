@@ -40,6 +40,7 @@ const description = escapeRubyString(pkg.description || 'Command-line interface'
 const homepage = resolveHomepage(pkg.repository)
 const license = normalizeLicense(pkg.license)
 const binName = resolveBinName(pkg.bin, pkgName)
+const binRelPath = resolveBinRelPath(pkg.bin, pkgName, binName)
 
 const formula = `class ${formulaClass} < Formula
   desc "${description}"
@@ -53,6 +54,9 @@ const formula = `class ${formulaClass} < Formula
   def install
     ENV["HOME"] = buildpath
     system "npm", "install", *std_npm_args
+    # npm install doesn't reliably create prefix/bin shims for ESM .mjs bins;
+    # install the package's bin entrypoint explicitly.
+    bin.install libexec/"lib/node_modules/${pkgName}/${binRelPath}" => "${binName}"
   end
 
   test do
@@ -116,4 +120,16 @@ function resolveBinName(bin, fallback) {
     if (names.length > 0) return names[0]
   }
   return fallback
+}
+
+function resolveBinRelPath(bin, pkgName, binName) {
+  if (!bin) return `bin/${pkgName}.mjs`
+  if (typeof bin === 'string') return bin
+  if (typeof bin === 'object' && bin[binName]) return String(bin[binName])
+  // Fallback: first value in the map.
+  if (typeof bin === 'object') {
+    const values = Object.values(bin).map(String).filter(Boolean)
+    if (values.length > 0) return values[0]
+  }
+  return `bin/${pkgName}.mjs`
 }

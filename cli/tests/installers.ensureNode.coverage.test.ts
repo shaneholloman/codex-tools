@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { InstallerContext, InstallerOptions, Logger } from '../src/installers/types.js'
 
 vi.mock('zx', () => {
   return {
@@ -8,23 +9,53 @@ vi.mock('zx', () => {
 })
 
 describe('installers/ensureNode', () => {
-  const logger = { log: vi.fn(), info: vi.fn(), ok: vi.fn(), warn: vi.fn(), err: vi.fn() }
+  const logger: Logger = { log: vi.fn(), info: vi.fn(), ok: vi.fn(), warn: vi.fn(), err: vi.fn() }
 
-  function makeCtx(overrides: Partial<any> = {}) {
+  function baseOptions(overrides: Partial<InstallerOptions> = {}): InstallerOptions {
+    return {
+      profile: 'skip',
+      profileScope: 'single',
+      profileMode: 'add',
+      setDefaultProfile: false,
+      profilesSelected: undefined,
+      installTools: 'skip',
+      toolsSelected: undefined,
+      installCodexCli: 'no',
+      notify: 'no',
+      globalAgents: 'skip',
+      notificationSound: undefined,
+      skills: 'skip',
+      skillsSelected: undefined,
+      mode: 'manual',
+      installNode: 'skip',
+      shell: 'auto',
+      vscodeId: undefined,
+      noVscode: true,
+      agentsMd: undefined,
+      dryRun: true,
+      assumeYes: true,
+      skipConfirmation: true,
+      ...overrides
+    }
+  }
+
+  type CtxOverrides =
+    Partial<Omit<InstallerContext, 'options' | 'logger'>> &
+    { options?: Partial<InstallerOptions>; logger?: Partial<Logger> }
+
+  function makeCtx(overrides: CtxOverrides = {}): InstallerContext {
+    const { options: optionsOverrides, logger: loggerOverrides, ...rest } = overrides
+    const mergedLogger: Logger = { ...logger, ...(loggerOverrides || {}) }
+    const mergedOptions = baseOptions(optionsOverrides || {})
     return {
       cwd: '/tmp',
       homeDir: '/tmp/home',
       rootDir: '/tmp/root',
       logDir: '/tmp/log',
       logFile: '/tmp/log/install.log',
-      logger,
-      options: {
-        installNode: 'skip',
-        dryRun: true,
-        assumeYes: true,
-        skipConfirmation: true
-      },
-      ...overrides
+      logger: mergedLogger,
+      options: mergedOptions,
+      ...rest,
     }
   }
 

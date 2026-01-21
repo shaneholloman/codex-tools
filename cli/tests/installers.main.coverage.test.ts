@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { InstallerOptions } from '../src/installers/types.js'
 
 const logger = { log: vi.fn(), info: vi.fn(), ok: vi.fn(), warn: vi.fn(), err: vi.fn() }
 
@@ -58,17 +59,21 @@ describe('installers/main runInstaller', () => {
     maybeInstallSkills.mockResolvedValue(undefined)
   })
 
-  function baseOptions(overrides: Partial<any> = {}) {
+  function baseOptions(overrides: Partial<InstallerOptions> = {}): InstallerOptions {
     return {
-      installTools: 'skip',
-      installCodexCli: 'no',
       profile: 'skip',
       profileScope: 'single',
       profileMode: 'add',
       setDefaultProfile: false,
+      profilesSelected: undefined,
+      installTools: 'skip',
+      toolsSelected: undefined,
+      installCodexCli: 'no',
       notify: 'no',
       globalAgents: 'skip',
+      notificationSound: undefined,
       skills: 'skip',
+      skillsSelected: undefined,
       mode: 'manual',
       installNode: 'skip',
       shell: 'auto',
