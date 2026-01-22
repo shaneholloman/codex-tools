@@ -19,7 +19,7 @@ export type ExperimentalFeature =
   | 'shell-snapshot'        // shell_snapshot
   | 'multi-agents'          // collab (spawn agents)
   | 'steering'              // steer
-  | 'collaboration-modes'   // collaboration_modes (/collab)
+  | 'collaboration-modes'   // collaboration_modes (Plan/Pair/Execute)
   | 'child-agent-project-docs' // child_agents_md (extra AGENTS.md guidance)
 export type ToolId =
   | 'rg'

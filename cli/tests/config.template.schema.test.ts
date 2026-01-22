@@ -4,7 +4,7 @@ import { resolve } from 'path'
 import * as TOML from 'toml'
 
 // Guardrail: keep our template aligned to Codex CLI (codex-rs) config keys.
-// This list is based on codex tag `rust-v0.88.0` (see `codex-rs/core/config.schema.json`).
+// This list is based on the codex-rs config schema (see `codex-rs/core/config.schema.json`).
 
 const ROOT_KEYS = new Set([
   'model',

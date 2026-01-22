@@ -432,7 +432,7 @@ export async function runInstallWizard(input: InstallWizardInput): Promise<Insta
         { label: 'Shell snapshot', value: 'shell-snapshot' },
         { label: 'Multi-agents (spawn other agents)', value: 'multi-agents' },
         { label: 'Steer conversation', value: 'steering' },
-        { label: 'Collaboration modes (/collab)', value: 'collaboration-modes' },
+        { label: 'Collaboration modes (Plan/Pair/Execute)', value: 'collaboration-modes' },
         { label: 'Child-agent project docs (extra AGENTS.md guidance)', value: 'child-agent-project-docs' }
       ]
     })

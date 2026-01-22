@@ -57,8 +57,10 @@ export async function writeCodexConfig(ctx: InstallerContext): Promise<void> {
   const initial = exists ? await fs.readFile(cfgPath, 'utf8') : HEADER_COMMENT
   const migratedWindowsSandbox = migrateExperimentalWindowsSandboxFlag(initial)
   const migratedLegacyFeatures = migrateLegacyRootFeatureFlags(migratedWindowsSandbox.toml)
-  const editor = new TomlEditor(migratedLegacyFeatures.toml)
-  let touched = migratedWindowsSandbox.changed || migratedLegacyFeatures.changed
+  const migratedCollaborationModes = migrateCollaborationModesFlag(migratedLegacyFeatures.toml)
+  const editor = new TomlEditor(migratedCollaborationModes.toml)
+  let touched =
+    migratedWindowsSandbox.changed || migratedLegacyFeatures.changed || migratedCollaborationModes.changed
 
   touched = applyProfile(
     editor,
@@ -649,4 +651,64 @@ function migrateLegacyRootFeatureFlags(toml: string): { toml: string; changed: b
   }
 
   return { toml: next, changed }
+}
+
+function migrateCollaborationModesFlag(toml: string): { toml: string; changed: boolean } {
+  // Codex schema uses a plural key: collaboration_modes (Plan/Pair/Execute).
+  // We briefly wrote the wrong singular key; migrate it in-place.
+  const OLD_KEY = 'collaboration_mode'
+  const NEW_KEY = 'collaboration_modes'
+
+  if (!toml.includes(OLD_KEY)) return { toml, changed: false }
+
+  const lines = toml.split(/\r?\n/)
+  let currentTable = ''
+
+  const isRelevantTable = (table: string) =>
+    table === 'features' || /^profiles\.[^.]+\.features$/.test(table)
+
+  // First pass: track which tables already define the new key.
+  const tablesWithNewKey = new Set<string>()
+  for (const line of lines) {
+    const table = line.match(/^\s*\[([^\]]+)\]\s*$/)
+    if (table) {
+      currentTable = table[1].trim()
+      continue
+    }
+    if (/^\s*#/.test(line)) continue
+    if (!isRelevantTable(currentTable)) continue
+    if (new RegExp(`^\\s*${escapeRegExp(NEW_KEY)}\\s*=`).test(line)) {
+      tablesWithNewKey.add(currentTable)
+    }
+  }
+
+  // Second pass: rename/remove old key.
+  currentTable = ''
+  let changed = false
+  const out: string[] = []
+
+  for (const line of lines) {
+    const table = line.match(/^\s*\[([^\]]+)\]\s*$/)
+    if (table) {
+      currentTable = table[1].trim()
+      out.push(line)
+      continue
+    }
+
+    if (!/^\s*#/.test(line) && isRelevantTable(currentTable)) {
+      if (new RegExp(`^\\s*${escapeRegExp(OLD_KEY)}\\s*=`).test(line)) {
+        if (tablesWithNewKey.has(currentTable)) {
+          changed = true
+          continue // drop deprecated key; new one already present
+        }
+        out.push(line.replace(new RegExp(`^(\\s*)${escapeRegExp(OLD_KEY)}(\\s*=\\s*)`), `$1${NEW_KEY}$2`))
+        changed = true
+        continue
+      }
+    }
+
+    out.push(line)
+  }
+
+  return { toml: out.join('\n'), changed }
 }

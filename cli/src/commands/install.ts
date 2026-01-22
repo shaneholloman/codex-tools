@@ -46,7 +46,7 @@ export const installCommand = defineCommand({
     'credentials-store': { type: 'string', description: 'auto|file|keyring|skip (set cli_auth_credentials_store + mcp_oauth_credentials_store)' },
     tui2: { type: 'boolean', description: 'Enable Codex TUI2 (experimental)' },
     'alt-screen': { type: 'string', description: 'auto|always|never|skip (set tui.alternate_screen)' },
-    experimental: { type: 'string', description: 'comma-separated experimental feature toggles: background-terminal, steering, multi-agent, collaboration-modes' },
+    experimental: { type: 'string', description: 'comma-separated experimental feature toggles: background-terminal, steering, multi-agents, collaboration-modes' },
     sound: { type: 'string', description: 'Sound file, "none", or "skip" to leave unchanged' },
     'agents-md': { type: 'string', description: 'Write starter AGENTS.md to PATH (default PWD/AGENTS.md)', required: false },
     skills: { type: 'string', description: 'Install bundled Agent Skills to ~/.codex/skills: all|skip|<comma-separated names>' }
