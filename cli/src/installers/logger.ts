@@ -3,12 +3,13 @@ import { createWriteStream } from 'fs'
 
 export function createLogger(logFile: string): Logger {
   let logStream: ReturnType<typeof createWriteStream> | null = null
-  try {
-    logStream = createWriteStream(logFile, { flags: 'a', mode: 0o600 })
-  } catch (error) {
-    void error
-    // Fallback to stdout only if file write fails
-  }
+  // NOTE: createWriteStream errors are usually async (emitted via "error"),
+  // so try/catch is not sufficient. Always attach an error handler.
+  logStream = createWriteStream(logFile, { flags: 'a', mode: 0o600 })
+  logStream.on('error', () => {
+    // Fallback to stdout only if file write fails (e.g. temp dir removed in tests).
+    logStream = null
+  })
 
   const write = (prefix: string, msg: string) => {
     const line = prefix ? `${prefix} ${msg}\n` : `${msg}\n`
