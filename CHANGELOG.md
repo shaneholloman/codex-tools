@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.15] - 2026-01-22
+
+### Fixed
+- CI: avoid flaky test failures when the per-command log file stream cannot be opened (e.g. temp home dir deleted) by safely handling logger write stream errors.
+
 ## [0.3.14] - 2026-01-22
 
 ### Added
