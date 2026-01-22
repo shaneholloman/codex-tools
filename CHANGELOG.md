@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.17] - 2026-01-22
+
+### Fixed
+- Release: follow-up patch release (no functional changes).
+
 ## [0.3.16] - 2026-01-22
 
 ### Fixed
