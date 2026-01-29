@@ -14,6 +14,7 @@ This project ships via the Node script at `scripts/release.ts`. The script bumps
   - **Important**: The section header must match the exact version format: `## [X.Y.Z] - YYYY-MM-DD`
   - Include detailed descriptions of changes (Added/Changed/Fixed sections) so users can easily see what's included in the release
   - The release script extracts this section automatically for the GitHub Release description
+- Commit the changelog section before running the release script (it enforces a clean working tree).
 - Ensure any user-facing docs (README, templates) are committed.
 - Run tests and ensure coverage is healthy:
   - Run tests (one-shot): `pnpm -C cli test:run`

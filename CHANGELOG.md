@@ -4,8 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.20] - 2026-01-29
+
 ### Fixed
-- Installer: avoid hanging at startup by adding timeouts to npm-registry/version checks (Codex + codex-1up) and showing progress while probing.
+- Installer: avoid hanging at startup by adding timeouts to npm-registry/version checks (Codex + codex-1up), plus a `npm view` fallback for proxied environments, and show progress while probing.
 
 ## [0.3.19] - 2026-01-29
 
