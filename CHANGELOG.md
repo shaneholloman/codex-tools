@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.19] - 2026-01-29
+
 ### Changed
 - Installer: default web search override prompt to “Skip” and clarify that it only overrides `profiles.<name>.web_search` (root `web_search` remains a fallback).
 - Installer: revamp “experimental features” wizard step to a skip-or-choose flow and only expose the TUI `/experimental` features (Background terminal, Shell snapshot, Steer).
