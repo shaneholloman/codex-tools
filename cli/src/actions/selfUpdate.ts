@@ -84,13 +84,20 @@ export async function runSelfUpdate(options: SelfUpdateOptions): Promise<'update
 }
 
 async function getLatestVersion(pkgName: string): Promise<string | undefined> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 1500)
+  timeout.unref?.()
   try {
-    const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(pkgName)}/latest`)
+    const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(pkgName)}/latest`, {
+      signal: controller.signal
+    })
     if (!res.ok) return undefined
     const data = (await res.json()) as { version?: string }
     return data.version
   } catch {
     return undefined
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
