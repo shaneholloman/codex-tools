@@ -78,9 +78,10 @@ jobs:
       - name: Run tests (Node 18.x, no coverage)
         if: matrix.node-version == '18.x'
         working-directory: cli
-        run: pnpm test
+        run: pnpm run test:run
         env:
           CI: true
+          NODE_OPTIONS: --max-old-space-size=8192
 
       - name: Run tests with coverage
         if: matrix.node-version != '18.x'
@@ -88,6 +89,7 @@ jobs:
         run: pnpm run coverage
         env:
           CI: true
+          NODE_OPTIONS: --max-old-space-size=8192
 
       - name: Upload coverage reports
         if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'

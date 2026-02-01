@@ -233,4 +233,40 @@ describe('writeCodexConfig targeted patches', () => {
     expect(data).toMatch(/\[profiles\.safe\][\s\S]*model_reasoning_summary\s*=\s*"concise"/)
     await cleanup()
   })
+
+  it('writes suppress_unstable_features_warning when requested (Codex >= 0.92)', async () => {
+    const initial = `# config\nprofile = "balanced"\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    ctx.options.suppressUnstableWarning = true
+    ctx.codexVersion = '0.92.0'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/suppress_unstable_features_warning\s*=\s*true/)
+    await cleanup()
+  })
+
+  it('does not write suppress_unstable_features_warning on older Codex when key is absent', async () => {
+    const initial = `# config\nprofile = "balanced"\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    ctx.options.suppressUnstableWarning = true
+    ctx.codexVersion = '0.91.9'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).not.toMatch(/suppress_unstable_features_warning\s*=/)
+    await cleanup()
+  })
+
+  it('updates suppress_unstable_features_warning if the key already exists', async () => {
+    const initial = `suppress_unstable_features_warning = false\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    ctx.options.suppressUnstableWarning = true
+    ctx.codexVersion = undefined
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/suppress_unstable_features_warning\s*=\s*true/)
+    await cleanup()
+  })
 })

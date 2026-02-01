@@ -14,6 +14,10 @@ profile = "balanced"                 # active profile: balanced|safe|yolo
 # `live` requires network access when using the workspace-write sandbox.
 web_search = "live"
 
+# If you enable under-development features (e.g. collab), Codex may warn on startup.
+# Set this to true to hide that warning.
+# suppress_unstable_features_warning = true
+
 # Credential storage (recommended: auto)
 cli_auth_credentials_store = "auto"      # auto|file|keyring
 mcp_oauth_credentials_store = "auto"     # auto|file|keyring
@@ -55,6 +59,9 @@ view_image = true
 # unified_exec = false    # Background terminal - run long-running commands in background
 # shell_snapshot = false  # Snapshot shell env to speed up commands
 # steer = false           # Enter submits, Tab queues messages
+# apps = false            # Enable ChatGPT Apps (connectors) via "$" and /apps (restart required)
+# personality = false     # Enable personality selection UI (restart required)
+# collaboration_modes = false # Enable Plan/Pair/Execute collaboration modes (restart required)
 
 # ---- Profiles (override only what differs from root) -----------------------
 

@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Installer: add wizard option to set `suppress_unstable_features_warning = true` to hide the “Under-development features enabled …” warning when using unstable features (e.g. `collab`).
+- Installer: allow enabling `features.collaboration_modes` via the wizard/`--experimental` to turn on Plan/Pair/Execute collaboration modes.
+- Installer: allow enabling `features.apps` and `features.personality` via the wizard/`--experimental` to match Codex TUI `/experimental` options.
+
+### Fixed
+- CI: reduce flakiness by increasing Node heap size for Vitest runs.
+
 ## [0.3.20] - 2026-01-29
 
 ### Fixed
