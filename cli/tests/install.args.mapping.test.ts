@@ -139,13 +139,16 @@ describe('install args mapping', () => {
       yes: true,
       'skip-confirmation': true,
       'dry-run': true,
-      experimental: 'background-terminal,shell-snapshot,steering'
+      experimental: 'background-terminal,shell-snapshot,apps,steering,personality,collaboration-modes'
     }) })
     const opts = captured.pop()
     expect(opts.experimentalFeatures).toEqual([
       'background-terminal',
       'shell-snapshot',
-      'steering'
+      'apps',
+      'steering',
+      'personality',
+      'collaboration-modes'
     ])
   })
 

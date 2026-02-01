@@ -226,7 +226,10 @@ function applyExperimentalFeatureToggles(editor: TomlEditor, ctx: InstallerConte
   const featureKeyMap: Record<string, string> = {
     'background-terminal': 'unified_exec',  // run long-running commands in background
     'shell-snapshot': 'shell_snapshot',     // snapshot shell env to speed up commands
-    'steering': 'steer'                     // Enter submits, Tab queues messages
+    'apps': 'apps',                         // ChatGPT Apps (connectors)
+    'steering': 'steer',                    // Enter submits, Tab queues messages
+    'personality': 'personality',           // enable personality selection UI
+    'collaboration-modes': 'collaboration_modes' // enable collaboration modes UI
   }
 
   const wanted = (ctx.options.experimentalFeatures || [])

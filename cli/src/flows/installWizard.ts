@@ -17,6 +17,7 @@ import type {
   ProfileMode,
   ProfileScope,
   ProfileSelection,
+  SuppressUnstableWarning,
   SkillsInstallMode,
   TuiAltScreenChoice,
   ToolId
@@ -42,7 +43,7 @@ export interface InstallSelections {
   credentialsStore?: CredentialsStoreChoice | undefined
   tuiAlternateScreen?: TuiAltScreenChoice | undefined
   experimentalFeatures?: ExperimentalFeature[] | undefined
-  suppressUnstableWarning?: boolean | undefined
+  suppressUnstableWarning?: SuppressUnstableWarning | undefined
 }
 
 export interface InstallWizardInput {
@@ -437,7 +438,10 @@ export async function runInstallWizard(input: InstallWizardInput): Promise<Insta
         options: [
           { label: 'Background terminal', value: 'background-terminal', hint: 'run long-running commands in background' },
           { label: 'Shell snapshot', value: 'shell-snapshot', hint: 'snapshot shell env to speed up commands' },
-          { label: 'Steer conversation', value: 'steering', hint: 'Enter submits, Tab queues messages' }
+          { label: 'Apps', value: 'apps', hint: 'use connected ChatGPT Apps via "$" (requires restart)' },
+          { label: 'Steer conversation', value: 'steering', hint: 'Enter submits, Tab queues messages' },
+          { label: 'Personality', value: 'personality', hint: 'choose a communication style (requires restart)' },
+          { label: 'Collaboration modes', value: 'collaboration-modes', hint: 'enable Plan/Pair/Execute modes (requires restart)' }
         ]
       })
       if (picked === 'back') {
@@ -447,6 +451,19 @@ export async function runInstallWizard(input: InstallWizardInput): Promise<Insta
         experimentalFeatures = chosen.filter(isExperimentalFeature)
       }
     }
+  }
+
+  if (!suppressUnstableWarning) {
+    const suppressChoice = await p.select({
+      message: 'Suppress "Under-development features enabled" warning (optional)',
+      options: [
+        { label: 'Skip (leave unchanged)', value: 'skip' },
+        { label: 'Yes (set suppress_unstable_features_warning = true)', value: 'yes', hint: 'hides the warning; features may still be unstable' }
+      ],
+      initialValue: 'skip'
+    }) as 'skip' | 'yes'
+    if (p.isCancel(suppressChoice)) return cancelWizard()
+    suppressUnstableWarning = suppressChoice === 'yes' ? true : 'skip'
   }
 
   if (selectedProfiles.length === 0) {
@@ -750,7 +767,10 @@ function isExperimentalFeature(value: string): value is ExperimentalFeature {
   // Only accept features exposed in Codex TUI's /experimental menu
   return value === 'background-terminal' ||
     value === 'shell-snapshot' ||
-    value === 'steering'
+    value === 'apps' ||
+    value === 'steering' ||
+    value === 'personality' ||
+    value === 'collaboration-modes'
 }
 
 function cancelWizard(): null {

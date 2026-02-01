@@ -12,6 +12,7 @@ import type {
   ExperimentalFeature,
   FileOpenerChoice,
   InstallerOptions,
+  SuppressUnstableWarning,
   ToolId,
   TuiAltScreenChoice,
   WebSearchChoice
@@ -45,7 +46,7 @@ export const installCommand = defineCommand({
     'file-opener': { type: 'string', description: 'cursor|vscode|vscode-insiders|windsurf|none|skip (open citations in editor)' },
     'credentials-store': { type: 'string', description: 'auto|file|keyring|skip (set cli_auth_credentials_store + mcp_oauth_credentials_store)' },
     'alt-screen': { type: 'string', description: 'auto|always|never|skip (set tui.alternate_screen)' },
-    experimental: { type: 'string', description: 'comma-separated experimental feature toggles: background-terminal, shell-snapshot, steering (from Codex /experimental menu)' },
+    experimental: { type: 'string', description: 'comma-separated experimental feature toggles: background-terminal, shell-snapshot, apps, steering, personality, collaboration-modes (from Codex /experimental menu)' },
     'suppress-unstable-warning': { type: 'boolean', description: 'Suppress "Under-development features enabled …" warning (hides reminder; features may still be unstable)' },
     sound: { type: 'string', description: 'Sound file, "none", or "skip" to leave unchanged' },
     'agents-md': { type: 'string', description: 'Write starter AGENTS.md to PATH (default PWD/AGENTS.md)', required: false },
@@ -132,7 +133,7 @@ export const installCommand = defineCommand({
     let credentialsStore: CredentialsStoreChoice | undefined
     let tuiAlternateScreen: TuiAltScreenChoice | undefined
     let experimentalFeatures: ExperimentalFeature[] | undefined
-    let suppressUnstableWarning: boolean | undefined
+    let suppressUnstableWarning: SuppressUnstableWarning | undefined
 
     const applySoundSelection = (choice: string) => {
       const normalized = choice.trim().toLowerCase()
@@ -435,7 +436,10 @@ function parseExperimentalArg(value: string): ExperimentalFeature[] {
     if (
       p === 'background-terminal' ||
       p === 'shell-snapshot' ||
-      p === 'steering'
+      p === 'apps' ||
+      p === 'steering' ||
+      p === 'personality' ||
+      p === 'collaboration-modes'
     ) {
       if (!out.includes(p)) out.push(p)
       continue

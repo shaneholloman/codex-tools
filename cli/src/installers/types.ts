@@ -18,7 +18,10 @@ export type TuiAltScreenChoice = TuiAltScreenMode | 'skip'
 export type ExperimentalFeature =
   | 'background-terminal'   // unified_exec - run long-running commands in background
   | 'shell-snapshot'        // shell_snapshot - snapshot shell env to speed up commands
+  | 'apps'                  // apps - enable ChatGPT Apps (connectors) via "$" and /apps
   | 'steering'              // steer - Enter submits, Tab queues messages
+  | 'personality'           // personality - enable personality selection UI
+  | 'collaboration-modes'   // collaboration_modes - enable collaboration modes UI (plan/pair/execute)
 export type SuppressUnstableWarning = boolean | 'skip'
 export type ToolId =
   | 'rg'
