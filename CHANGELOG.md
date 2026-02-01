@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.21] - 2026-02-01
+
 ### Added
 - Installer: add wizard option to set `suppress_unstable_features_warning = true` to hide the “Under-development features enabled …” warning when using unstable features (e.g. `collab`).
 - Installer: allow enabling `features.collaboration_modes` via the wizard/`--experimental` to turn on Plan/Pair/Execute collaboration modes.
