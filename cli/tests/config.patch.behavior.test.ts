@@ -245,7 +245,7 @@ describe('writeCodexConfig targeted patches', () => {
     await cleanup()
   })
 
-  it('normalizes invalid model_reasoning_summary for *-codex models', async () => {
+  it('does not rewrite model_reasoning_summary for non-spark codex models', async () => {
     const initial = [
       '[profiles.safe]',
       'model = "gpt-5.3-codex"',
@@ -256,8 +256,7 @@ describe('writeCodexConfig targeted patches', () => {
     ctx.options.profile = 'skip'
     await writeCodexConfig(ctx)
     const data = await fs.readFile(cfgPath, 'utf8')
-    expect(data).toMatch(/\[profiles\.safe\][\s\S]*model_reasoning_summary\s*=\s*"detailed"/)
-    expect(data).not.toMatch(/\[profiles\.safe\][\s\S]*model_reasoning_summary\s*=\s*"concise"/)
+    expect(data).toMatch(/\[profiles\.safe\][\s\S]*model_reasoning_summary\s*=\s*"concise"/)
     await cleanup()
   })
 
@@ -273,6 +272,19 @@ describe('writeCodexConfig targeted patches', () => {
     await writeCodexConfig(ctx)
     const data = await fs.readFile(cfgPath, 'utf8')
     expect(data).toMatch(/\[profiles\.safe\][\s\S]*model_reasoning_summary\s*=\s*"concise"/)
+    await cleanup()
+  })
+
+  it('writes experimental feature toggles to root [features] when no profiles are targeted', async () => {
+    const initial = `# config\nprofile = "balanced"\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    ctx.options.profileScope = 'selected'
+    ctx.options.profilesSelected = []
+    ctx.options.experimentalFeatures = ['apps']
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[features\][\s\S]*apps\s*=\s*true/)
     await cleanup()
   })
 

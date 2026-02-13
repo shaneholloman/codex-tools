@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - CLI: accept `--profiles-scope selected`.
 - Config: avoid `reasoning.summary` API errors on `*-codex-spark` models by forcing `model_reasoning_summary = "none"`.
+- Installer: avoid silently ignoring `--experimental` feature toggles when no profiles are being written (fallback to root `[features]`).
 - Installer: validate generated `config.toml` as TOML before writing (avoid producing unparsable configs).
 
 ## [0.3.21] - 2026-02-01

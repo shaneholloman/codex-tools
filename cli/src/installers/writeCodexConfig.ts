@@ -236,7 +236,6 @@ function applyPersonality(editor: TomlEditor, ctx: InstallerContext): boolean {
 
 function applyExperimentalFeatureToggles(editor: TomlEditor, ctx: InstallerContext): boolean {
   const targets = resolveProfileTargets(ctx.options.profileScope, ctx.options.profile, ctx.options.profilesSelected)
-  if (targets.length === 0) return false
 
   // Map wizard feature names to Codex config keys (features exposed in /experimental menu)
   const featureKeyMap: Record<string, string> = {
@@ -253,6 +252,14 @@ function applyExperimentalFeatureToggles(editor: TomlEditor, ctx: InstallerConte
   if (wanted.length === 0) return false
 
   let changed = false
+  if (targets.length === 0) {
+    // If no profiles are being written, apply to root [features] so the user's selection is not silently ignored.
+    editor.ensureTable('features')
+    for (const key of wanted) {
+      changed = editor.setKey('features', key, 'true', { mode: 'force' }) || changed
+    }
+    return changed
+  }
   for (const name of targets) {
     editor.ensureTable(`profiles.${name}.features`)
     for (const key of wanted) {
@@ -498,11 +505,6 @@ function migrateModelPersonalityKey(editor: TomlEditor): boolean {
   return changed
 }
 
-function isCodexModel(model: string | undefined): boolean {
-  if (!model) return false
-  return model.includes('-codex')
-}
-
 function isCodexSparkModel(model: string | undefined): boolean {
   if (!model) return false
   return model.includes('-codex-spark')
@@ -518,11 +520,6 @@ function normalizeReasoningSummaryForCodexModels(editor: TomlEditor): boolean {
     if (rootSummary !== 'none') {
       changed = editor.setRootKey('model_reasoning_summary', '"none"', { mode: 'force' }) || changed
     }
-  } else if (isCodexModel(rootModel)) {
-    const rootSummary = parseTomlStringLiteral(editor.getRootValue('model_reasoning_summary'))
-    if (rootSummary && rootSummary !== 'detailed') {
-      changed = editor.setRootKey('model_reasoning_summary', '"detailed"', { mode: 'force' }) || changed
-    }
   }
 
   // Profile-level compatibility.
@@ -537,12 +534,6 @@ function normalizeReasoningSummaryForCodexModels(editor: TomlEditor): boolean {
         changed = editor.setKey(table, 'model_reasoning_summary', '"none"', { mode: 'force' }) || changed
       }
       continue
-    }
-    if (isCodexModel(model)) {
-      const summary = parseTomlStringLiteral(editor.getValue(table, 'model_reasoning_summary'))
-      if (summary && summary !== 'detailed') {
-        changed = editor.setKey(table, 'model_reasoning_summary', '"detailed"', { mode: 'force' }) || changed
-      }
     }
   }
 
