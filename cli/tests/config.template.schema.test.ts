@@ -69,6 +69,7 @@ const FEATURES_KEYS = new Set([
   'remote_compaction',
   'remote_models',
   'responses_websockets',
+  'responses_websockets_v2',
   'shell_snapshot',
   'shell_tool',
   'steer',
@@ -97,7 +98,7 @@ function assertKeysAllowed(obj: Record<string, unknown>, allowed: Set<string>, c
 }
 
 describe('templates/codex-config.toml schema guard', () => {
-  it('only uses keys present in codex-rs v0.92 config schema', async () => {
+  it('only uses keys present in codex-rs v0.101 config schema', async () => {
     const repoRoot = resolve(__dirname, '../../')
     const templatePath = resolve(repoRoot, 'templates', 'codex-config.toml')
     const raw = await fs.readFile(templatePath, 'utf8')

@@ -64,6 +64,7 @@ view_image = true
 # apps = false            # Enable ChatGPT Apps (connectors) via "$" and /apps (requires restart)
 # use_linux_sandbox_bwrap = false # Bubblewrap sandbox (Linux only; requires restart)
 # prevent_idle_sleep = false # Prevent system sleep while running (macOS only; requires restart)
+# responses_websockets_v2 = false # Use Responses API WebSocket transport v2 (under development)
 # unified_exec = false    # Background terminal - run long-running commands in background
 # shell_snapshot = false  # Snapshot shell env to speed up commands
 # steer = false           # Enter submits, Tab queues messages
