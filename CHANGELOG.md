@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Installer: add `--personality` and wizard prompt to set `personality = "none"|"friendly"|"pragmatic"` in `~/.codex/config.toml`.
+- Config: migrate legacy `model_personality` to `personality`.
+
+### Changed
+- Installer: align `--experimental` / wizard “/experimental” toggles to Codex v0.101 (`apps`, `sub-agents`, plus platform-specific `bubblewrap-sandbox` and `prevent-idle-sleep`).
+- Defaults: update the Safe profile to `approval_policy = "untrusted"` (Codex marks `on-failure` as deprecated).
+- Defaults: switch installer-written profiles and template to `model = "gpt-5.3-codex"` (Balanced uses `model_reasoning_effort = "high"`).
+- Template: align comments and defaults to Codex CLI (codex-rs) v0.101 config keys.
+
+### Fixed
+- CLI: accept `--profiles-scope selected`.
+- Config: avoid `reasoning.summary` API errors on `*-codex-spark` models by forcing `model_reasoning_summary = "none"`.
+- Installer: avoid silently ignoring `--experimental` feature toggles when no profiles are being written (fallback to root `[features]`).
+- Installer: validate generated `config.toml` as TOML before writing (avoid producing unparsable configs).
+
 ## [0.3.21] - 2026-02-01
 
 ### Added

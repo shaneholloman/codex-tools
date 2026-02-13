@@ -63,8 +63,8 @@ describe('writeCodexConfig targeted patches', () => {
     const data = await fs.readFile(cfgPath, 'utf8')
     expect(data).toMatch(/\[profiles\.balanced\][\s\S]*approval_policy\s*=\s*"custom"/)
     expect(data).toMatch(/\[profiles\.balanced\][\s\S]*sandbox_mode\s*=\s*"workspace-write"/)
-    expect(data).toMatch(/\[profiles\.balanced\][\s\S]*model\s*=\s*"gpt-5.2-codex"/)
-    expect(data).toMatch(/\[profiles\.balanced\][\s\S]*model_reasoning_effort\s*=\s*"medium"/)
+    expect(data).toMatch(/\[profiles\.balanced\][\s\S]*model\s*=\s*"gpt-5.3-codex"/)
+    expect(data).toMatch(/\[profiles\.balanced\][\s\S]*model_reasoning_effort\s*=\s*"high"/)
     expect(data).toMatch(/\[profiles\.balanced\][\s\S]*model_reasoning_summary\s*=\s*"detailed"/)
     expect(data).toMatch(/\[profiles\.balanced\][\s\S]*web_search\s*=\s*"cached"/)
     await cleanup()
@@ -77,8 +77,8 @@ describe('writeCodexConfig targeted patches', () => {
     ctx.options.profileMode = 'overwrite'
     await writeCodexConfig(ctx)
     const data = await fs.readFile(cfgPath, 'utf8')
-    expect(data).toMatch(/\[profiles\.safe\][\s\S]*approval_policy\s*=\s*"on-failure"/)
-    expect(data).toMatch(/\[profiles\.safe\][\s\S]*model\s*=\s*"gpt-5.2-codex"/)
+    expect(data).toMatch(/\[profiles\.safe\][\s\S]*approval_policy\s*=\s*"untrusted"/)
+    expect(data).toMatch(/\[profiles\.safe\][\s\S]*model\s*=\s*"gpt-5.3-codex"/)
     expect(data).toMatch(/\[profiles\.safe\][\s\S]*model_reasoning_effort\s*=\s*"medium"/)
     expect(data).toMatch(/\[profiles\.safe\][\s\S]*model_reasoning_summary\s*=\s*"detailed"/)
     expect(data).not.toMatch(/\[profiles\.safe\][\s\S]*extra_key/)
@@ -96,6 +96,48 @@ describe('writeCodexConfig targeted patches', () => {
     await writeCodexConfig(ctx)
     const data = await fs.readFile(cfgPath, 'utf8')
     expect(data).toMatch(/profile\s*=\s*"yolo"/)
+    await cleanup()
+  })
+
+  it('migrates model_personality to personality at root', async () => {
+    const initial = `model = "gpt-5.3-codex"\nmodel_personality = "friendly"\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/personality\s*=\s*"friendly"/)
+    expect(data).not.toMatch(/model_personality\s*=/)
+    await cleanup()
+  })
+
+  it('does not migrate invalid model_personality values', async () => {
+    const initial = `model = "gpt-5.3-codex"\nmodel_personality = "verbose"\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).not.toMatch(/^\s*personality\s*=/m)
+    expect(data).toMatch(/model_personality\s*=\s*"verbose"/)
+    await cleanup()
+  })
+
+  it('disables reasoning summaries for *-codex-spark models', async () => {
+    const initial = `[profiles.balanced]\nmodel = "gpt-5.3-codex-spark"\nmodel_reasoning_summary = "detailed"\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[profiles\.balanced\][\s\S]*model_reasoning_summary\s*=\s*"none"/)
+    await cleanup()
+  })
+
+  it('disables reasoning summaries for *-codex-spark models with single-quoted strings', async () => {
+    const initial = `[profiles.balanced]\nmodel = 'gpt-5.3-codex-spark'\nmodel_reasoning_summary = 'detailed'\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[profiles\.balanced\][\s\S]*model_reasoning_summary\s*=\s*"none"/)
     await cleanup()
   })
 
@@ -203,10 +245,10 @@ describe('writeCodexConfig targeted patches', () => {
     await cleanup()
   })
 
-  it('normalizes invalid model_reasoning_summary for *-codex models', async () => {
+  it('does not rewrite model_reasoning_summary for non-spark codex models', async () => {
     const initial = [
       '[profiles.safe]',
-      'model = "gpt-5.2-codex"',
+      'model = "gpt-5.3-codex"',
       'model_reasoning_summary = "concise"',
       ''
     ].join('\n')
@@ -214,8 +256,7 @@ describe('writeCodexConfig targeted patches', () => {
     ctx.options.profile = 'skip'
     await writeCodexConfig(ctx)
     const data = await fs.readFile(cfgPath, 'utf8')
-    expect(data).toMatch(/\[profiles\.safe\][\s\S]*model_reasoning_summary\s*=\s*"detailed"/)
-    expect(data).not.toMatch(/\[profiles\.safe\][\s\S]*model_reasoning_summary\s*=\s*"concise"/)
+    expect(data).toMatch(/\[profiles\.safe\][\s\S]*model_reasoning_summary\s*=\s*"concise"/)
     await cleanup()
   })
 
@@ -231,6 +272,19 @@ describe('writeCodexConfig targeted patches', () => {
     await writeCodexConfig(ctx)
     const data = await fs.readFile(cfgPath, 'utf8')
     expect(data).toMatch(/\[profiles\.safe\][\s\S]*model_reasoning_summary\s*=\s*"concise"/)
+    await cleanup()
+  })
+
+  it('writes experimental feature toggles to root [features] when no profiles are targeted', async () => {
+    const initial = `# config\nprofile = "balanced"\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    ctx.options.profileScope = 'selected'
+    ctx.options.profilesSelected = []
+    ctx.options.experimentalFeatures = ['apps']
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[features\][\s\S]*apps\s*=\s*true/)
     await cleanup()
   })
 
