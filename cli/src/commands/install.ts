@@ -48,7 +48,7 @@ export const installCommand = defineCommand({
     'credentials-store': { type: 'string', description: 'auto|file|keyring|skip (set cli_auth_credentials_store + mcp_oauth_credentials_store)' },
     'alt-screen': { type: 'string', description: 'auto|always|never|skip (set tui.alternate_screen)' },
     personality: { type: 'string', description: 'none|friendly|pragmatic|skip (set root personality)' },
-    experimental: { type: 'string', description: 'comma-separated /experimental feature toggles: apps, sub-agents, bubblewrap-sandbox, prevent-idle-sleep (platform-dependent)' },
+    experimental: { type: 'string', description: 'comma-separated /experimental feature toggles: apps, multi-agents, bubblewrap-sandbox, prevent-idle-sleep (legacy alias: sub-agents)' },
     'suppress-unstable-warning': { type: 'boolean', description: 'Suppress "Under-development features enabled …" warning (hides reminder; features may still be unstable)' },
     sound: { type: 'string', description: 'Sound file, "none", or "skip" to leave unchanged' },
     'agents-md': { type: 'string', description: 'Write starter AGENTS.md to PATH (default PWD/AGENTS.md)', required: false },
@@ -454,13 +454,16 @@ function parseExperimentalArg(value: string): ExperimentalFeature[] {
   const out: ExperimentalFeature[] = []
   // Only accept features exposed in Codex TUI's /experimental menu
   for (const p of parts) {
+    const canonical = p === 'sub-agents' ? 'multi-agents' : p
     if (
-      p === 'apps' ||
-      p === 'sub-agents' ||
-      p === 'bubblewrap-sandbox' ||
-      p === 'prevent-idle-sleep'
+      canonical === 'apps' ||
+      canonical === 'multi-agents' ||
+      canonical === 'bubblewrap-sandbox' ||
+      canonical === 'prevent-idle-sleep'
     ) {
-      if (!out.includes(p)) out.push(p)
+      if (!out.includes(canonical as ExperimentalFeature)) {
+        out.push(canonical as ExperimentalFeature)
+      }
       continue
     }
     throw new Error(`Unknown --experimental feature: ${p}`)

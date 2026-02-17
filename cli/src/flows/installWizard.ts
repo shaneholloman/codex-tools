@@ -359,7 +359,7 @@ export async function runInstallWizard(input: InstallWizardInput): Promise<Insta
     profileMode = modeResponse
   }
 
-  // --- Advanced config options (Codex v0.101 config keys) -------------------
+  // --- Advanced config options (Codex v0.102 config keys) -------------------
 
   if (selectedProfiles.length > 0 && !cliArgs.webSearchArg) {
     p.log.info('Note: this overrides profiles.<name>.web_search for the profiles you are writing. Root web_search is unchanged (fallback only).')
@@ -453,7 +453,7 @@ export async function runInstallWizard(input: InstallWizardInput): Promise<Insta
     if (experimentalChoice === 'choose') {
       p.log.info('Tip: press Esc to go back.')
       const options: Array<{ label: string; value: ExperimentalFeature; hint?: string }> = [
-        { label: 'Sub-agents', value: 'sub-agents', hint: 'allow spawning sub-agents (requires restart)' },
+        { label: 'Multi-agents', value: 'multi-agents', hint: 'allow spawning multi-agents (requires restart)' },
         { label: 'Apps', value: 'apps', hint: 'use connected ChatGPT Apps via "$" and /apps (requires restart)' }
       ]
       if (process.platform === 'linux') {
@@ -789,6 +789,7 @@ function isProfile(value: unknown): value is 'balanced'|'safe'|'yolo' {
 function isExperimentalFeature(value: string): value is ExperimentalFeature {
   // Only accept features exposed in Codex TUI's /experimental menu
   return value === 'apps' ||
+    value === 'multi-agents' ||
     value === 'sub-agents' ||
     value === 'bubblewrap-sandbox' ||
     value === 'prevent-idle-sleep'

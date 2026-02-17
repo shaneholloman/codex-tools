@@ -163,36 +163,73 @@ describe('writeCodexConfig targeted patches', () => {
     await cleanup()
   })
 
-  it('migrates enable_experimental_windows_sandbox to experimental_windows_sandbox in [features]', async () => {
+  it('removes legacy windows sandbox flags from [features]', async () => {
     const initial = `[features]\nenable_experimental_windows_sandbox = true\n`
     const { ctx, cfgPath, cleanup } = await setupContext(initial)
     ctx.options.profile = 'skip'
     await writeCodexConfig(ctx)
     const data = await fs.readFile(cfgPath, 'utf8')
-    expect(data).toMatch(/\[features\][\s\S]*experimental_windows_sandbox\s*=\s*true/)
+    expect(data).toMatch(/\[features\]/)
+    expect(data).not.toMatch(/\bexperimental_windows_sandbox\s*=/)
     expect(data).not.toMatch(/enable_experimental_windows_sandbox/)
     await cleanup()
   })
 
-  it('drops enable_experimental_windows_sandbox if experimental_windows_sandbox is already present', async () => {
+  it('removes both legacy and removed windows sandbox flags when both are present', async () => {
     const initial = `[features]\nexperimental_windows_sandbox = false\nenable_experimental_windows_sandbox = true\n`
     const { ctx, cfgPath, cleanup } = await setupContext(initial)
     ctx.options.profile = 'skip'
     await writeCodexConfig(ctx)
     const data = await fs.readFile(cfgPath, 'utf8')
-    expect(data).toMatch(/\[features\][\s\S]*experimental_windows_sandbox\s*=\s*false/)
+    expect(data).toMatch(/\[features\]/)
+    expect(data).not.toMatch(/\bexperimental_windows_sandbox\s*=/)
     expect(data).not.toMatch(/enable_experimental_windows_sandbox/)
     await cleanup()
   })
 
-  it('migrates a legacy root enable_experimental_windows_sandbox into [features]', async () => {
+  it('drops root-level legacy windows sandbox flag without rewriting it to [features]', async () => {
     const initial = `enable_experimental_windows_sandbox = true\n`
     const { ctx, cfgPath, cleanup } = await setupContext(initial)
     ctx.options.profile = 'skip'
     await writeCodexConfig(ctx)
     const data = await fs.readFile(cfgPath, 'utf8')
-    expect(data).toMatch(/\[features\][\s\S]*experimental_windows_sandbox\s*=\s*true/)
+    expect(data).not.toMatch(/\[features\][\s\S]*experimental_windows_sandbox\s*=/)
+    expect(data).not.toMatch(/\[features\][\s\S]*enable_experimental_windows_sandbox\s*=/)
     expect(data).not.toMatch(/enable_experimental_windows_sandbox/)
+    await cleanup()
+  })
+
+  it('migrates legacy collab feature key to multi_agent', async () => {
+    const initial = `[features]\ncollab = true\n\n[profiles.safe.features]\ncollab = false\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[features\][\s\S]*multi_agent\s*=\s*true/)
+    expect(data).toMatch(/\[profiles\.safe\.features\][\s\S]*multi_agent\s*=\s*false/)
+    expect(data).not.toMatch(/\bcollab\s*=/)
+    await cleanup()
+  })
+
+  it('migrates root collab to [features].multi_agent', async () => {
+    const initial = `collab = true\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[features\][\s\S]*multi_agent\s*=\s*true/)
+    expect(data).not.toMatch(/\bcollab\s*=/)
+    await cleanup()
+  })
+
+  it('drops root collab when [features].multi_agent already exists', async () => {
+    const initial = `collab = true\n\n[features]\nmulti_agent = false\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[features\][\s\S]*multi_agent\s*=\s*false/)
+    expect(data).not.toMatch(/\bcollab\s*=/)
     await cleanup()
   })
 
@@ -236,12 +273,54 @@ describe('writeCodexConfig targeted patches', () => {
     expect(data).toMatch(/\[features\][\s\S]*web_search_request\s*=\s*true/)
     expect(data).toMatch(/\[features\][\s\S]*unified_exec\s*=\s*true/)
     expect(data).toMatch(/\[features\][\s\S]*apply_patch_freeform\s*=\s*true/)
-    expect(data).toMatch(/\[features\][\s\S]*include_apply_patch_tool\s*=\s*true/)
     expect(data).not.toMatch(/experimental_use_unified_exec_tool/)
-    // Root-level deprecated key removed; feature key remains.
-    const prefix = data.split('[features]')[0] || ''
-    expect(prefix).not.toMatch(/^include_apply_patch_tool\s*=/m)
+    expect(data).not.toMatch(/\binclude_apply_patch_tool\s*=/)
     expect(data).not.toMatch(/experimental_use_rmcp_client/)
+    await cleanup()
+  })
+
+  it('prunes removed feature keys from root and feature tables', async () => {
+    const initial = [
+      'search_tool = true',
+      '',
+      '[features]',
+      'search_tool = true',
+      'request_rule = true',
+      'experimental_windows_sandbox = true',
+      'elevated_windows_sandbox = true',
+      'unified_exec = false',
+      '',
+      '[profiles.safe.features]',
+      'search_tool = true',
+      'apps = true',
+      ''
+    ].join('\n')
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).not.toMatch(/\bsearch_tool\s*=/)
+    expect(data).not.toMatch(/\brequest_rule\s*=/)
+    expect(data).not.toMatch(/\bexperimental_windows_sandbox\s*=/)
+    expect(data).not.toMatch(/\belevated_windows_sandbox\s*=/)
+    expect(data).toMatch(/\[features\][\s\S]*unified_exec\s*=\s*false/)
+    expect(data).toMatch(/\[profiles\.safe\.features\][\s\S]*apps\s*=\s*true/)
+    await cleanup()
+  })
+
+  it('prunes include_apply_patch_tool from profile feature tables', async () => {
+    const initial = [
+      '[profiles.safe.features]',
+      'include_apply_patch_tool = true',
+      'apps = true',
+      ''
+    ].join('\n')
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).not.toMatch(/\binclude_apply_patch_tool\s*=/)
+    expect(data).toMatch(/\[profiles\.safe\.features\][\s\S]*apps\s*=\s*true/)
     await cleanup()
   })
 
@@ -285,6 +364,20 @@ describe('writeCodexConfig targeted patches', () => {
     await writeCodexConfig(ctx)
     const data = await fs.readFile(cfgPath, 'utf8')
     expect(data).toMatch(/\[features\][\s\S]*apps\s*=\s*true/)
+    await cleanup()
+  })
+
+  it('maps legacy sub-agents toggle to features.multi_agent', async () => {
+    const initial = `# config\nprofile = "balanced"\n`
+    const { ctx, cfgPath, cleanup } = await setupContext(initial)
+    ctx.options.profile = 'skip'
+    ctx.options.profileScope = 'selected'
+    ctx.options.profilesSelected = []
+    ctx.options.experimentalFeatures = ['sub-agents']
+    await writeCodexConfig(ctx)
+    const data = await fs.readFile(cfgPath, 'utf8')
+    expect(data).toMatch(/\[features\][\s\S]*multi_agent\s*=\s*true/)
+    expect(data).not.toMatch(/\bcollab\s*=/)
     await cleanup()
   })
 

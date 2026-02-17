@@ -19,7 +19,8 @@ export type PersonalityChoice = Personality | 'skip'
 // Experimental features exposed in Codex TUI's /experimental menu
 export type ExperimentalFeature =
   | 'apps'                  // apps - enable ChatGPT Apps (connectors) via "$" and /apps
-  | 'sub-agents'            // collab - enable spawning sub-agents
+  | 'multi-agents'          // multi_agent - enable spawning multi-agents
+  | 'sub-agents'            // legacy alias for multi-agents
   | 'bubblewrap-sandbox'    // use_linux_sandbox_bwrap - experimental Linux sandbox pipeline
   | 'prevent-idle-sleep'    // prevent_idle_sleep - prevent system sleep during turns
 export type SuppressUnstableWarning = boolean | 'skip'

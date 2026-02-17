@@ -139,12 +139,12 @@ describe('install args mapping', () => {
       yes: true,
       'skip-confirmation': true,
       'dry-run': true,
-      experimental: 'apps,sub-agents,bubblewrap-sandbox,prevent-idle-sleep'
+      experimental: 'apps,sub-agents,multi-agents,bubblewrap-sandbox,prevent-idle-sleep'
     }) })
     const opts = captured.pop()
     expect(opts.experimentalFeatures).toEqual([
       'apps',
-      'sub-agents',
+      'multi-agents',
       'bubblewrap-sandbox',
       'prevent-idle-sleep'
     ])

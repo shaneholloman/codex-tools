@@ -58,10 +58,16 @@ export async function writeCodexConfig(ctx: InstallerContext): Promise<void> {
   const initial = exists ? await fs.readFile(cfgPath, 'utf8') : HEADER_COMMENT
   const migratedWindowsSandbox = migrateExperimentalWindowsSandboxFlag(initial)
   const migratedLegacyFeatures = migrateLegacyRootFeatureFlags(migratedWindowsSandbox.toml)
-  const migratedCollaborationModes = migrateCollaborationModesFlag(migratedLegacyFeatures.toml)
-  const editor = new TomlEditor(migratedCollaborationModes.toml)
+  const migratedMultiAgent = migrateCollabFeatureFlag(migratedLegacyFeatures.toml)
+  const migratedCollaborationModes = migrateCollaborationModesFlag(migratedMultiAgent.toml)
+  const prunedRemovedFeatures = pruneRemovedFeatureFlags(migratedCollaborationModes.toml)
+  const editor = new TomlEditor(prunedRemovedFeatures.toml)
   let touched =
-    migratedWindowsSandbox.changed || migratedLegacyFeatures.changed || migratedCollaborationModes.changed
+    migratedWindowsSandbox.changed ||
+    migratedLegacyFeatures.changed ||
+    migratedMultiAgent.changed ||
+    migratedCollaborationModes.changed ||
+    prunedRemovedFeatures.changed
 
   touched = migrateModelPersonalityKey(editor) || touched
 
@@ -240,14 +246,19 @@ function applyExperimentalFeatureToggles(editor: TomlEditor, ctx: InstallerConte
   // Map wizard feature names to Codex config keys (features exposed in /experimental menu)
   const featureKeyMap: Record<string, string> = {
     'apps': 'apps', // ChatGPT Apps (connectors)
-    'sub-agents': 'collab', // spawn sub-agents
+    'multi-agents': 'multi_agent', // spawn multi-agents
+    'sub-agents': 'multi_agent', // legacy alias
     'bubblewrap-sandbox': 'use_linux_sandbox_bwrap', // Linux-only experimental sandbox pipeline
     'prevent-idle-sleep': 'prevent_idle_sleep' // prevent sleep during turns
   }
 
-  const wanted = (ctx.options.experimentalFeatures || [])
-    .map(f => featureKeyMap[f])
-    .filter(Boolean)
+  const wanted = Array.from(
+    new Set(
+      (ctx.options.experimentalFeatures || [])
+        .map(f => featureKeyMap[f])
+        .filter(Boolean)
+    )
+  )
 
   if (wanted.length === 0) return false
 
@@ -552,12 +563,11 @@ function formatTableSeparator(text: string): string {
 }
 
 function migrateExperimentalWindowsSandboxFlag(toml: string): { toml: string; changed: boolean } {
-  // Codex CLI v0.74 deprecates `enable_experimental_windows_sandbox` in favor of
-  // `[features].experimental_windows_sandbox`.
+  // In Codex v0.102 these keys are removed; strip them instead of migrating.
   const OLD_KEY = 'enable_experimental_windows_sandbox'
   const NEW_KEY = 'experimental_windows_sandbox'
 
-  if (!toml.includes(OLD_KEY)) return { toml, changed: false }
+  if (!toml.includes(OLD_KEY) && !toml.includes(NEW_KEY)) return { toml, changed: false }
 
   const lines = toml.split(/\r?\n/)
   let currentTable = ''
@@ -565,23 +575,7 @@ function migrateExperimentalWindowsSandboxFlag(toml: string): { toml: string; ch
   const isRelevantTable = (table: string) =>
     table === 'features' || /^profiles\.[^.]+\.features$/.test(table)
 
-  // First pass: find which relevant tables already define the new key.
-  const tablesWithNewKey = new Set<string>()
-  for (const line of lines) {
-    const table = line.match(/^\s*\[([^\]]+)\]\s*$/)
-    if (table) {
-      currentTable = table[1].trim()
-      continue
-    }
-    if (/^\s*#/.test(line)) continue
-    if (!isRelevantTable(currentTable)) continue
-    if (new RegExp(`^\\s*${NEW_KEY}\\s*=`).test(line)) tablesWithNewKey.add(currentTable)
-  }
-
-  // Second pass: rename/remove old key lines; also capture any legacy root-level setting.
-  currentTable = ''
   let changed = false
-  let rootOldValue: string | undefined
 
   const out: string[] = []
   for (const line of lines) {
@@ -594,21 +588,14 @@ function migrateExperimentalWindowsSandboxFlag(toml: string): { toml: string; ch
 
     if (!/^\s*#/.test(line)) {
       if (currentTable === '') {
-        const m = line.match(new RegExp(`^\\s*${OLD_KEY}\\s*=\\s*(.+?)\\s*$`))
-        if (m) {
-          rootOldValue = m[1]
+        if (new RegExp(`^\\s*(?:${OLD_KEY}|${NEW_KEY})\\s*=`).test(line)) {
           changed = true
-          continue // drop legacy root key
+          continue
         }
       }
 
       if (isRelevantTable(currentTable)) {
-        if (new RegExp(`^\\s*${OLD_KEY}\\s*=`).test(line)) {
-          if (tablesWithNewKey.has(currentTable)) {
-            changed = true
-            continue // new key already exists; remove deprecated one
-          }
-          out.push(line.replace(new RegExp(`^(\\s*)${OLD_KEY}(\\s*=\\s*)`), `$1${NEW_KEY}$2`))
+        if (new RegExp(`^\\s*(?:${OLD_KEY}|${NEW_KEY})\\s*=`).test(line)) {
           changed = true
           continue
         }
@@ -618,36 +605,7 @@ function migrateExperimentalWindowsSandboxFlag(toml: string): { toml: string; ch
     out.push(line)
   }
 
-  let next = out.join('\n')
-
-  // If the legacy key was set at root, migrate it into [features] unless already set there.
-  if (rootOldValue !== undefined) {
-    const featuresRange = findTableRange(next, 'features')
-    const alreadySetInFeatures = (() => {
-      if (!featuresRange) return false
-      const block = next.slice(featuresRange.start, featuresRange.end)
-      return new RegExp(`^\\s*${NEW_KEY}\\s*=`,'m').test(block)
-    })()
-
-    if (!alreadySetInFeatures) {
-      const line = `${NEW_KEY} = ${rootOldValue}`
-      if (featuresRange) {
-        // Insert at end of the [features] table.
-        const before = next.slice(0, featuresRange.end)
-        const after = next.slice(featuresRange.end)
-        const needsLeadNl = before.length > 0 && !before.endsWith('\n')
-        const needsTrailNl = after.length > 0 && !after.startsWith('\n')
-        next = before + `${needsLeadNl ? '\n' : ''}${line}\n${needsTrailNl ? '\n' : ''}` + after
-      } else {
-        // No [features] table exists; append one.
-        const sep = next.length === 0 ? '' : formatTableSeparator(next)
-        next = sep + `[features]\n${line}\n`
-      }
-      changed = true
-    }
-  }
-
-  return { toml: next, changed }
+  return { toml: out.join('\n'), changed }
 }
 
 function migrateLegacyRootFeatureFlags(toml: string): { toml: string; changed: boolean } {
@@ -657,7 +615,8 @@ function migrateLegacyRootFeatureFlags(toml: string): { toml: string; changed: b
     { oldKey: 'experimental_use_exec_command_tool', newKey: 'shell_tool' },
     { oldKey: 'experimental_use_unified_exec_tool', newKey: 'unified_exec' },
     { oldKey: 'experimental_use_freeform_apply_patch', newKey: 'apply_patch_freeform' },
-    { oldKey: 'include_apply_patch_tool', newKey: 'include_apply_patch_tool' },
+    // Removed upstream; drop legacy key without writing a replacement.
+    { oldKey: 'include_apply_patch_tool' },
     // Deprecated/removed upstream; drop without mapping.
     { oldKey: 'experimental_use_rmcp_client' }
   ]
@@ -739,8 +698,102 @@ function migrateLegacyRootFeatureFlags(toml: string): { toml: string; changed: b
   return { toml: next, changed }
 }
 
+function migrateCollabFeatureFlag(toml: string): { toml: string; changed: boolean } {
+  // Canonical Codex key is `multi_agent`; `collab` is a legacy alias.
+  const OLD_KEY = 'collab'
+  const NEW_KEY = 'multi_agent'
+
+  if (!toml.includes(OLD_KEY)) return { toml, changed: false }
+
+  const lines = toml.split(/\r?\n/)
+  let currentTable = ''
+
+  const isRelevantTable = (table: string) =>
+    table === 'features' || /^profiles\.[^.]+\.features$/.test(table)
+
+  const tablesWithNewKey = new Set<string>()
+  for (const line of lines) {
+    const table = line.match(/^\s*\[([^\]]+)\]\s*$/)
+    if (table) {
+      currentTable = table[1].trim()
+      continue
+    }
+    if (/^\s*#/.test(line)) continue
+    if (!isRelevantTable(currentTable)) continue
+    if (new RegExp(`^\\s*${escapeRegExp(NEW_KEY)}\\s*=`).test(line)) {
+      tablesWithNewKey.add(currentTable)
+    }
+  }
+
+  currentTable = ''
+  let changed = false
+  let rootOldValue: string | undefined
+  const out: string[] = []
+
+  for (const line of lines) {
+    const table = line.match(/^\s*\[([^\]]+)\]\s*$/)
+    if (table) {
+      currentTable = table[1].trim()
+      out.push(line)
+      continue
+    }
+
+    if (!/^\s*#/.test(line)) {
+      if (currentTable === '') {
+        const m = line.match(new RegExp(`^\\s*${escapeRegExp(OLD_KEY)}\\s*=\\s*(.+?)\\s*$`))
+        if (m) {
+          rootOldValue = m[1]
+          changed = true
+          continue
+        }
+      }
+
+      if (isRelevantTable(currentTable)) {
+        if (new RegExp(`^\\s*${escapeRegExp(OLD_KEY)}\\s*=`).test(line)) {
+          if (tablesWithNewKey.has(currentTable)) {
+            changed = true
+            continue
+          }
+          out.push(line.replace(new RegExp(`^(\\s*)${escapeRegExp(OLD_KEY)}(\\s*=\\s*)`), `$1${NEW_KEY}$2`))
+          changed = true
+          continue
+        }
+      }
+    }
+
+    out.push(line)
+  }
+
+  let next = out.join('\n')
+  if (rootOldValue !== undefined) {
+    const featuresRange = findTableRange(next, 'features')
+    const alreadySetInFeatures = (() => {
+      if (!featuresRange) return false
+      const block = next.slice(featuresRange.start, featuresRange.end)
+      return new RegExp(`^\\s*${escapeRegExp(NEW_KEY)}\\s*=`, 'm').test(block)
+    })()
+
+    if (!alreadySetInFeatures) {
+      const line = `${NEW_KEY} = ${rootOldValue}`
+      if (featuresRange) {
+        const before = next.slice(0, featuresRange.end)
+        const after = next.slice(featuresRange.end)
+        const needsLeadNl = before.length > 0 && !before.endsWith('\n')
+        const needsTrailNl = after.length > 0 && !after.startsWith('\n')
+        next = before + `${needsLeadNl ? '\n' : ''}${line}\n${needsTrailNl ? '\n' : ''}` + after
+      } else {
+        const sep = next.length === 0 ? '' : formatTableSeparator(next)
+        next = sep + `[features]\n${line}\n`
+      }
+      changed = true
+    }
+  }
+
+  return { toml: next, changed }
+}
+
 function migrateCollaborationModesFlag(toml: string): { toml: string; changed: boolean } {
-  // Codex schema uses a plural key: collaboration_modes (Plan/Pair/Execute).
+  // Codex schema uses a plural key: collaboration_modes.
   // We briefly wrote the wrong singular key; migrate it in-place.
   const OLD_KEY = 'collaboration_mode'
   const NEW_KEY = 'collaboration_modes'
@@ -788,6 +841,56 @@ function migrateCollaborationModesFlag(toml: string): { toml: string; changed: b
           continue // drop deprecated key; new one already present
         }
         out.push(line.replace(new RegExp(`^(\\s*)${escapeRegExp(OLD_KEY)}(\\s*=\\s*)`), `$1${NEW_KEY}$2`))
+        changed = true
+        continue
+      }
+    }
+
+    out.push(line)
+  }
+
+  return { toml: out.join('\n'), changed }
+}
+
+function pruneRemovedFeatureFlags(toml: string): { toml: string; changed: boolean } {
+  // Codex still recognizes these keys as removed/legacy, but they should not be written in new config patches.
+  const REMOVED_KEYS = [
+    'search_tool',
+    'request_rule',
+    'experimental_windows_sandbox',
+    'elevated_windows_sandbox',
+    'include_apply_patch_tool'
+  ]
+
+  const hasAny = REMOVED_KEYS.some(key => toml.includes(key))
+  if (!hasAny) return { toml, changed: false }
+
+  const isRemovedKey = (line: string) =>
+    REMOVED_KEYS.some(key => new RegExp(`^\\s*${escapeRegExp(key)}\\s*=`).test(line))
+
+  const lines = toml.split(/\r?\n/)
+  let currentTable = ''
+  let changed = false
+  const out: string[] = []
+
+  const isRelevantTable = (table: string) =>
+    table === 'features' || /^profiles\.[^.]+\.features$/.test(table)
+
+  for (const line of lines) {
+    const table = line.match(/^\s*\[([^\]]+)\]\s*$/)
+    if (table) {
+      currentTable = table[1].trim()
+      out.push(line)
+      continue
+    }
+
+    if (!/^\s*#/.test(line)) {
+      if (currentTable === '' && isRemovedKey(line)) {
+        changed = true
+        continue
+      }
+
+      if (isRelevantTable(currentTable) && isRemovedKey(line)) {
         changed = true
         continue
       }

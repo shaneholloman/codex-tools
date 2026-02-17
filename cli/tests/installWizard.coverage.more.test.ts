@@ -314,7 +314,7 @@ describe('runInstallWizard (extra coverage)', () => {
     promptState.selects.push(() => 'never')   // alternate screen
     promptState.selects.push(() => 'skip')    // personality
     promptState.selects.push(() => 'choose')  // experimental: choose (not skip)
-    promptState.multiselects.push(() => ['apps', 'sub-agents'])
+    promptState.multiselects.push(() => ['apps', 'multi-agents'])
 
     // Default profile confirm (single selected profile)
     promptState.confirms.push(() => true)
@@ -335,7 +335,7 @@ describe('runInstallWizard (extra coverage)', () => {
     expect(res!.selections.fileOpener).toBe('cursor')
     expect(res!.selections.credentialsStore).toBe('auto')
     expect(res!.selections.tuiAlternateScreen).toBe('never')
-    expect(res!.selections.experimentalFeatures).toEqual(['apps', 'sub-agents'])
+    expect(res!.selections.experimentalFeatures).toEqual(['apps', 'multi-agents'])
 
     await fs.rm(input.repoRoot, { recursive: true, force: true })
   })
@@ -449,4 +449,3 @@ describe('runInstallWizard (extra coverage)', () => {
     await fs.rm(input.repoRoot, { recursive: true, force: true })
   })
 })
-
