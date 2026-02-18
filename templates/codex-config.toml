@@ -1,7 +1,7 @@
 # ~/.codex/config.toml — created by codex-1up
 # Adjust to your liking. See Codex CLI docs for full options.
 #
-# This template is aligned to Codex CLI (codex-rs) v0.101 config keys.
+# This template is aligned to Codex CLI (codex-rs) v0.102 config keys.
 
 # Core (root defaults)
 model = "gpt-5.3-codex"
@@ -14,7 +14,7 @@ profile = "balanced"                 # active profile: balanced|safe|yolo
 # `live` requires network access when using the workspace-write sandbox.
 web_search = "live"
 
-# If you enable under-development features (e.g. collab), Codex may warn on startup.
+# If you enable under-development features (e.g. multi_agent), Codex may warn on startup.
 # Set this to true to hide that warning.
 # suppress_unstable_features_warning = true
 
@@ -53,22 +53,32 @@ alternate_screen = "auto"
 [tools]
 view_image = true
 
+# Multi-agent settings (optional)
+[agents]
+# max_threads = 6
+#
+# Define custom agent roles by adding subtables:
+# [agents.researcher]
+# description = "Research-focused role."
+# config_file = "/Users/you/.codex/agents/researcher.toml"
+
 # Feature flags (advanced). Prefer leaving unset (Codex will use sensible defaults).
 # /experimental menu toggles currently include:
-# - collab (Sub-agents)
+# - multi_agent (Multi-agents)
 # - apps
 # - use_linux_sandbox_bwrap (Linux only)
 # - prevent_idle_sleep (macOS only)
 [features]
-# collab = false          # Sub-agents (requires restart)
+# multi_agent = false     # Multi-agents (requires restart)
 # apps = false            # Enable ChatGPT Apps (connectors) via "$" and /apps (requires restart)
 # use_linux_sandbox_bwrap = false # Bubblewrap sandbox (Linux only; requires restart)
 # prevent_idle_sleep = false # Prevent system sleep while running (macOS only; requires restart)
+# responses_websockets_v2 = false # Use Responses API WebSocket transport v2 (under development)
 # unified_exec = false    # Background terminal - run long-running commands in background
 # shell_snapshot = false  # Snapshot shell env to speed up commands
 # steer = false           # Enter submits, Tab queues messages
 # personality = false     # Enable personality selection UI (requires restart)
-# collaboration_modes = false # Enable Plan/Pair/Execute collaboration modes (requires restart)
+# collaboration_modes = false # Enable collaboration mode switching (requires restart)
 
 # ---- Profiles (override only what differs from root) -----------------------
 

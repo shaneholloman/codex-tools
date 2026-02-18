@@ -43,8 +43,8 @@ function makeCtx(): InstallerContext {
 
 beforeAll(async () => {
   await fs.mkdir(CH, { recursive: true })
-  // Seed a problematic config with stray root notifications and a features table
-  const seed = `# Seed config with bad notifications placement\nnotifications = false\n\n[tui]\nnotifications = false\n\n[features]\nweb_search_request = true\n\n[profiles.yolo]\napproval_policy = "never"\nsandbox_mode = "danger-full-access"\n[profiles.yolo.features]\nweb_search_request = true\n`
+  // Seed a problematic config with stray root notifications and feature tables.
+  const seed = `# Seed config with bad notifications placement\nnotifications = false\n\n[tui]\nnotifications = false\n\n[features]\nmulti_agent = true\n\n[profiles.yolo]\napproval_policy = "never"\nsandbox_mode = "danger-full-access"\n[profiles.yolo.features]\napps = true\n`
   await fs.writeFile(CFG, seed, 'utf8')
 })
 

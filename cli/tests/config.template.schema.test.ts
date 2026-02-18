@@ -17,6 +17,7 @@ const ROOT_KEYS = new Set([
   'file_opener',
   'show_raw_agent_reasoning',
   'hide_agent_reasoning',
+  'agents',
   'sandbox_workspace_write',
   'tui',
   'tools',
@@ -52,31 +53,34 @@ const TUI_KEYS = new Set([
 const TOOLS_KEYS = new Set(['view_image', 'web_search'])
 
 const FEATURES_KEYS = new Set([
+  'undo',
+  'shell_tool',
+  'unified_exec',
+  'shell_snapshot',
+  'js_repl',
+  'js_repl_tools_only',
+  'web_search_request',
+  'web_search_cached',
+  'runtime_metrics',
+  'sqlite',
+  'memory_tool',
   'apply_patch_freeform',
   'child_agents_md',
-  'collab',
-  'collaboration_modes',
-  'connectors',
-  'elevated_windows_sandbox',
-  'enable_experimental_windows_sandbox',
   'enable_request_compression',
-  'exec_policy',
-  'experimental_use_freeform_apply_patch',
-  'experimental_use_unified_exec_tool',
-  'experimental_windows_sandbox',
-  'include_apply_patch_tool',
-  'powershell_utf8',
-  'remote_compaction',
-  'remote_models',
-  'responses_websockets',
-  'shell_snapshot',
-  'shell_tool',
+  'multi_agent',
+  'apps',
+  'apps_mcp_gateway',
+  'skill_mcp_dependency_install',
+  'skill_env_var_dependency_prompt',
   'steer',
-  'undo',
-  'unified_exec',
-  'web_search',
-  'web_search_cached',
-  'web_search_request'
+  'collaboration_modes',
+  'personality',
+  'prevent_idle_sleep',
+  'responses_websockets',
+  'responses_websockets_v2',
+  'use_linux_sandbox_bwrap',
+  'remote_models',
+  'powershell_utf8',
 ])
 
 const PROFILE_KEYS = new Set([
@@ -97,7 +101,7 @@ function assertKeysAllowed(obj: Record<string, unknown>, allowed: Set<string>, c
 }
 
 describe('templates/codex-config.toml schema guard', () => {
-  it('only uses keys present in codex-rs v0.92 config schema', async () => {
+  it('only uses keys present in codex-rs v0.102 config schema', async () => {
     const repoRoot = resolve(__dirname, '../../')
     const templatePath = resolve(repoRoot, 'templates', 'codex-config.toml')
     const raw = await fs.readFile(templatePath, 'utf8')
@@ -155,4 +159,3 @@ describe('templates/codex-config.toml schema guard', () => {
     }
   })
 })
-

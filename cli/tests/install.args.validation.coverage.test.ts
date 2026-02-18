@@ -75,11 +75,11 @@ describe('install args validation (extra coverage)', () => {
         yes: true,
         'skip-confirmation': true,
         'dry-run': true,
-        experimental: 'apps,apps,sub-agents'
+        experimental: 'apps,apps,sub-agents,multi-agents'
       })
     })
     const opts = calls.pop()
-    expect(opts.experimentalFeatures).toEqual(['apps', 'sub-agents'])
+    expect(opts.experimentalFeatures).toEqual(['apps', 'multi-agents'])
   })
 
   it('applies --sound=skip and --sound=none', async () => {
@@ -121,4 +121,3 @@ describe('install args validation (extra coverage)', () => {
     expect(calls.length).toBe(before)
   })
 })
-
