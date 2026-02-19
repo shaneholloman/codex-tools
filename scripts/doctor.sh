@@ -168,7 +168,7 @@ if [ -f "$CFG" ]; then
     echo "⚠ legacy feature key 'collab' detected; migrate to 'multi_agent'"
   fi
 
-  removed_feature_keys=(search_tool request_rule experimental_windows_sandbox elevated_windows_sandbox include_apply_patch_tool)
+  removed_feature_keys=(search_tool request_rule experimental_windows_sandbox elevated_windows_sandbox remote_models include_apply_patch_tool)
   for key in "${removed_feature_keys[@]}"; do
     removed_root="$(toml_table_value "features" "$key" "$CFG")"
     while IFS= read -r profile_name; do

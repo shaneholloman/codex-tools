@@ -101,7 +101,7 @@ function assertKeysAllowed(obj: Record<string, unknown>, allowed: Set<string>, c
 }
 
 describe('templates/codex-config.toml schema guard', () => {
-  it('only uses keys present in codex-rs v0.102 config schema', async () => {
+  it('only uses keys present in codex-rs v0.104 config schema', async () => {
     const repoRoot = resolve(__dirname, '../../')
     const templatePath = resolve(repoRoot, 'templates', 'codex-config.toml')
     const raw = await fs.readFile(templatePath, 'utf8')
