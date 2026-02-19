@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Defaults: update the Safe profile to `approval_policy = "untrusted"` (Codex marks `on-failure` as deprecated).
 - Defaults: switch installer-written profiles and template to `model = "gpt-5.3-codex"` (Balanced uses `model_reasoning_effort = "high"`).
 - Template: align comments and defaults to Codex CLI (codex-rs) v0.102 config keys.
+- Template/installer docs: refresh Codex schema/version references to v0.104.
 
 ### Fixed
 - CLI: accept `--profiles-scope selected`.
@@ -21,7 +22,7 @@ All notable changes to this project will be documented in this file.
 - Installer: avoid silently ignoring `--experimental` feature toggles when no profiles are being written (fallback to root `[features]`).
 - Installer: validate generated `config.toml` as TOML before writing (avoid producing unparsable configs).
 - Config: remove legacy/removed sandbox flags (`enable_experimental_windows_sandbox`, `experimental_windows_sandbox`) during patching.
-- Config: prune removed feature keys (`search_tool`, `request_rule`, `experimental_windows_sandbox`, `elevated_windows_sandbox`, `include_apply_patch_tool`) from patched configs.
+- Config: prune removed feature keys (`search_tool`, `request_rule`, `experimental_windows_sandbox`, `elevated_windows_sandbox`, `remote_models`, `include_apply_patch_tool`) from patched configs.
 - Doctor: detect legacy `collab`, removed feature keys, and deprecated web-search feature keys; report effective `web_search` and `multi_agent` sources.
 - Template: document `responses_websockets_v2` (under-development) feature flag.
 

@@ -282,16 +282,19 @@ describe('writeCodexConfig targeted patches', () => {
   it('prunes removed feature keys from root and feature tables', async () => {
     const initial = [
       'search_tool = true',
+      'remote_models = true',
       '',
       '[features]',
       'search_tool = true',
       'request_rule = true',
       'experimental_windows_sandbox = true',
       'elevated_windows_sandbox = true',
+      'remote_models = true',
       'unified_exec = false',
       '',
       '[profiles.safe.features]',
       'search_tool = true',
+      'remote_models = true',
       'apps = true',
       ''
     ].join('\n')
@@ -303,6 +306,7 @@ describe('writeCodexConfig targeted patches', () => {
     expect(data).not.toMatch(/\brequest_rule\s*=/)
     expect(data).not.toMatch(/\bexperimental_windows_sandbox\s*=/)
     expect(data).not.toMatch(/\belevated_windows_sandbox\s*=/)
+    expect(data).not.toMatch(/\bremote_models\s*=/)
     expect(data).toMatch(/\[features\][\s\S]*unified_exec\s*=\s*false/)
     expect(data).toMatch(/\[profiles\.safe\.features\][\s\S]*apps\s*=\s*true/)
     await cleanup()

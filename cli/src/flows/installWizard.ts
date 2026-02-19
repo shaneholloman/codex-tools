@@ -359,7 +359,7 @@ export async function runInstallWizard(input: InstallWizardInput): Promise<Insta
     profileMode = modeResponse
   }
 
-  // --- Advanced config options (Codex v0.102 config keys) -------------------
+  // --- Advanced config options (Codex v0.104 config keys) -------------------
 
   if (selectedProfiles.length > 0 && !cliArgs.webSearchArg) {
     p.log.info('Note: this overrides profiles.<name>.web_search for the profiles you are writing. Root web_search is unchanged (fallback only).')

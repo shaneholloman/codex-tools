@@ -35,16 +35,20 @@ describe('doctor script output', () => {
       '',
       '[profiles.safe.features]',
       'search_tool = true',
+      'remote_models = true',
       'web_search_cached = true',
       '',
       '[features]',
       'request_rule = true',
+      'remote_models = true',
       ''
     ].join('\n'))
 
     expect(output).toContain('✔ web_search = cached (profiles.balanced.web_search)')
     expect(output).toContain("⚠ removed feature key 'search_tool' detected at profiles.safe.features.search_tool; remove it")
     expect(output).toContain("⚠ removed feature key 'request_rule' detected at features.request_rule; remove it")
+    expect(output).toContain("⚠ removed feature key 'remote_models' detected at profiles.safe.features.remote_models; remove it")
+    expect(output).toContain("⚠ removed feature key 'remote_models' detected at features.remote_models; remove it")
     expect(output).toContain("ℹ deprecated feature key 'web_search_cached' set at profiles.safe.features.web_search_cached; prefer profiles.safe.web_search")
   })
 
@@ -107,4 +111,3 @@ describe('doctor script output', () => {
     }
   })
 })
-

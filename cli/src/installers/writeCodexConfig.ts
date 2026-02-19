@@ -563,7 +563,7 @@ function formatTableSeparator(text: string): string {
 }
 
 function migrateExperimentalWindowsSandboxFlag(toml: string): { toml: string; changed: boolean } {
-  // In Codex v0.102 these keys are removed; strip them instead of migrating.
+  // These sandbox feature keys are removed in current Codex releases; strip them instead of migrating.
   const OLD_KEY = 'enable_experimental_windows_sandbox'
   const NEW_KEY = 'experimental_windows_sandbox'
 
@@ -859,6 +859,7 @@ function pruneRemovedFeatureFlags(toml: string): { toml: string; changed: boolea
     'request_rule',
     'experimental_windows_sandbox',
     'elevated_windows_sandbox',
+    'remote_models',
     'include_apply_patch_tool'
   ]
 

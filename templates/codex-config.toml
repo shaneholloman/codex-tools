@@ -1,7 +1,7 @@
 # ~/.codex/config.toml — created by codex-1up
 # Adjust to your liking. See Codex CLI docs for full options.
 #
-# This template is aligned to Codex CLI (codex-rs) v0.102 config keys.
+# This template is aligned to Codex CLI (codex-rs) v0.104 config keys.
 
 # Core (root defaults)
 model = "gpt-5.3-codex"
